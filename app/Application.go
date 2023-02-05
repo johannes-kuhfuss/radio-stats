@@ -10,18 +10,21 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/radio-stats/config"
+	handler "github.com/johannes-kuhfuss/radio-stats/handlers"
 
 	"github.com/johannes-kuhfuss/services_utils/date"
 	"github.com/johannes-kuhfuss/services_utils/logger"
 )
 
 var (
-	cfg    config.AppConfig
-	server http.Server
-	appEnd chan os.Signal
-	ctx    context.Context
-	cancel context.CancelFunc
+	cfg            config.AppConfig
+	server         http.Server
+	appEnd         chan os.Signal
+	ctx            context.Context
+	cancel         context.CancelFunc
+	statsUiHandler handler.StatsUiHandler
 )
 
 func StartApp() {
@@ -30,6 +33,7 @@ func StartApp() {
 	if err != nil {
 		panic(err)
 	}
+	initRouter()
 	initServer()
 	initMetrics()
 	wireApp()
@@ -45,6 +49,18 @@ func StartApp() {
 	} else {
 		logger.Info("Graceful shutdown finished")
 	}
+}
+
+func initRouter() {
+	gin.SetMode(cfg.Gin.Mode)
+	gin.DefaultWriter = logger.GetLogger()
+	router := gin.New()
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
+	router.SetTrustedProxies(nil)
+	router.LoadHTMLGlob("./templates/*.tmpl")
+
+	cfg.RunTime.Router = router
 }
 
 func initServer() {
@@ -88,9 +104,12 @@ func initMetrics() {
 }
 
 func wireApp() {
+	statsUiHandler = handler.NewStatsUiHandler(&cfg)
 }
 
 func mapUrls() {
+	cfg.RunTime.Router.GET("/", statsUiHandler.StatusPage)
+	cfg.RunTime.Router.GET("/about", statsUiHandler.AboutPage)
 }
 
 func RegisterForOsSignals() {

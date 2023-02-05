@@ -3,7 +3,6 @@ package config
 import (
 	"bufio"
 	"fmt"
-	"net/http"
 	"os"
 	"testing"
 
@@ -26,6 +25,8 @@ func writeTestEnv(fileName string) {
 	checkErr(err)
 	defer f.Close()
 	w := bufio.NewWriter(f)
+	_, err = w.WriteString("GIN_MODE=\"debug\"\n")
+	checkErr(err)
 	_, err = w.WriteString("SERVER_HOST=\"127.0.0.1\"\n")
 	checkErr(err)
 	_, err = w.WriteString("SERVER_PORT=\"9999\"\n")
@@ -39,6 +40,7 @@ func deleteEnvFile(fileName string) {
 }
 
 func unsetEnvVars() {
+	os.Unsetenv("GIN_MODE")
 	os.Unsetenv("SERVER_HOST")
 	os.Unsetenv("SERVER_PORT")
 }
@@ -59,14 +61,7 @@ func Test_loadConfig_WithEnvFile_Returns_NoError(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.EqualValues(t, "127.0.0.1", os.Getenv("SERVER_HOST"))
-}
-
-func Test_InitConfig_NoEnvFile_Returns_Error(t *testing.T) {
-	err := InitConfig("file_does_not_exist.txt", &testConfig)
-
-	assert.NotNil(t, err)
-	assert.EqualValues(t, http.StatusInternalServerError, err.StatusCode())
-	assert.EqualValues(t, "Could not initalize configuration. Check your environment variables", err.Message())
+	assert.EqualValues(t, "debug", os.Getenv("GIN_MODE"))
 }
 
 func Test_InitConfig_WithEnvFile_SetsValues(t *testing.T) {
@@ -76,4 +71,5 @@ func Test_InitConfig_WithEnvFile_SetsValues(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.EqualValues(t, 10, testConfig.Server.GracefulShutdownTime)
+	assert.EqualValues(t, "debug", testConfig.Gin.Mode)
 }

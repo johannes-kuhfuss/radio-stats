@@ -1,0 +1,65 @@
+{{ define "joblist.page.tmpl" }}
+
+{{ template "header" .}}
+
+
+    <div class="table-responsive">
+        {{if .jobs }}
+        <table class="table table-striped table-bordered table-sm">
+                    <thead>
+                        <tr>
+                        <th scope="col">Id</th>
+                        <th scope="col">Correlation Id</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Created At</th>
+                        <th scope="col">Created By</th>
+                        <th scope="col">Modified At</th>
+                        <th scope="col">Modified By</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Source</th>
+                        <th scope="col">Destination</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Sub-Type</th>
+                        <th scope="col">Action</th>
+                        <th scope="col">Action Details</th>
+                        <th scope="col">Progress</th>
+                        <th scope="col">History</th>
+                        <th scope="col">Extra Data</th>
+                        <th scope="col">Priority</th>
+                        <th scope="col">Rank</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {{ range .jobs }}            
+                    <tr>
+                        <td>{{.Id}}</td>
+                        <td>{{.CorrelationId}}</td>
+                        <td>{{.Name}}</td>
+                        <td>{{.CreatedAt | formatAsDate}}</td>
+                        <td>{{.CreatedBy}}</td>
+                        <td>{{.ModifiedAt| formatAsDate}}</td>
+                        <td>{{.ModifiedBy}}</td>
+                        <td>{{.Status}}</td>
+                        <td>{{.Source}}</td>
+                        <td>{{.Destination}}</td>
+                        <td>{{.Type}}</td>
+                        <td>{{.SubType}}</td>
+                        <td>{{.Action}}</td>
+                        <td>{{.ActionDetails}}</td>
+                        <td>{{.Progress}}</td>
+                        <td>{{.History}}</td>
+                        <td>{{.ExtraData}}</td>
+                        <td>{{.Priority}}</td>
+                        <td>{{.Rank}}</td>
+                    </tr>
+                    {{end}}
+                    </tbody>
+        </table>
+        {{else}}
+        <p>No jobs in job list</p>
+        {{end}}
+    </div>
+
+{{ template "footer" .}}
+
+{{ end }}

@@ -3,6 +3,7 @@ package config
 import (
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/services_utils/api_error"
 	"github.com/johannes-kuhfuss/services_utils/logger"
 	"github.com/joho/godotenv"
@@ -19,11 +20,15 @@ type AppConfig struct {
 		CertFile             string `envconfig:"CERT_FILE" default:"./cert/cert.pem"`
 		KeyFile              string `envconfig:"KEY_FILE" default:"./cert/cert.key"`
 	}
+	Gin struct {
+		Mode string `envconfig:"GIN_MODE" default:"debug"`
+	}
 	Scrape struct {
 		Url         string `envconfig:"SCRAPE_URL"`
 		IntervalSec int    `envconfig:"SCRAPE_INTERVAL_SEC" default:"10"`
 	}
 	RunTime struct {
+		Router     *gin.Engine
 		ListenAddr string
 		StartDate  time.Time
 	}
