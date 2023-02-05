@@ -87,7 +87,7 @@ func initServer() {
 
 	server = http.Server{
 		Addr:              cfg.RunTime.ListenAddr,
-		Handler:           nil,
+		Handler:           cfg.RunTime.Router,
 		ReadTimeout:       5 * time.Second,
 		ReadHeaderTimeout: 0,
 		WriteTimeout:      5 * time.Second,
