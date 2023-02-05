@@ -19,6 +19,10 @@ type AppConfig struct {
 		CertFile             string `envconfig:"CERT_FILE" default:"./cert/cert.pem"`
 		KeyFile              string `envconfig:"KEY_FILE" default:"./cert/cert.key"`
 	}
+	Scrape struct {
+		Url         string `envconfig:"SCRAPE_URL"`
+		IntervalSec int    `envconfig:"SCRAPE_INTERVAL_SEC" default:"10"`
+	}
 	RunTime struct {
 		ListenAddr string
 		StartDate  time.Time
