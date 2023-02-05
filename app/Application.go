@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/johannes-kuhfuss/radio-stats/config"
+
 	"github.com/johannes-kuhfuss/services_utils/date"
 	"github.com/johannes-kuhfuss/services_utils/logger"
 )
@@ -68,8 +70,8 @@ func initServer() {
 	}
 
 	server = http.Server{
-		Addr:              cfg.RunTime.ListenAddr,
-		Handler:           cfg.RunTime.Router,
+		Addr: cfg.RunTime.ListenAddr,
+		//Handler:           cfg.RunTime.Router,
 		ReadTimeout:       5 * time.Second,
 		ReadHeaderTimeout: 0,
 		WriteTimeout:      5 * time.Second,
