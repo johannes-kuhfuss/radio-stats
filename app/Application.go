@@ -12,7 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/radio-stats/config"
-	handler "github.com/johannes-kuhfuss/radio-stats/handlers"
+	"github.com/johannes-kuhfuss/radio-stats/handlers"
 
 	"github.com/johannes-kuhfuss/services_utils/date"
 	"github.com/johannes-kuhfuss/services_utils/logger"
@@ -24,7 +24,7 @@ var (
 	appEnd         chan os.Signal
 	ctx            context.Context
 	cancel         context.CancelFunc
-	statsUiHandler handler.StatsUiHandler
+	statsUiHandler handlers.StatsUiHandler
 )
 
 func StartApp() {
@@ -35,7 +35,6 @@ func StartApp() {
 	}
 	initRouter()
 	initServer()
-	initMetrics()
 	wireApp()
 	mapUrls()
 	RegisterForOsSignals()
@@ -100,11 +99,8 @@ func initServer() {
 	}
 }
 
-func initMetrics() {
-}
-
 func wireApp() {
-	statsUiHandler = handler.NewStatsUiHandler(&cfg)
+	statsUiHandler = handlers.NewStatsUiHandler(&cfg)
 }
 
 func mapUrls() {
