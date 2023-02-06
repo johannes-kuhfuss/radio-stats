@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/radio-stats/config"
+	"github.com/johannes-kuhfuss/radio-stats/dto"
 )
 
 type StatsUiHandler struct {
@@ -18,7 +19,10 @@ func NewStatsUiHandler(cfg *config.AppConfig) StatsUiHandler {
 }
 
 func (uh *StatsUiHandler) StatusPage(c *gin.Context) {
-	c.HTML(http.StatusOK, "status.page.tmpl", nil)
+	configData := dto.GetConfig(uh.Cfg)
+	c.HTML(http.StatusOK, "status.page.tmpl", gin.H{
+		"configdata": configData,
+	})
 }
 
 func (uh *StatsUiHandler) AboutPage(c *gin.Context) {

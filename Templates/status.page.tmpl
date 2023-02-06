@@ -2,9 +2,93 @@
 
 {{ template "header" .}}
 
-
-    <div class="table-responsive">
-        
+   <div class="container">
+        <div class="row">
+            <div class="col">
+                <h1>Radio Status Service - Configuration Data</h1>
+                <h2>Scraping</h2>
+                <table class="table table-striped table-sm">
+                    <thead>
+                        <tr>
+                        <th scope="col" style="width: 50%">Variable</th>
+                        <th scope="col" style="width: 50%">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Scraping URL</td>
+                            <td>{{ .configdata.ScrapeUrl }}</td>
+                        </tr>
+                        <tr>
+                            <td>Scraping Interval (sec)</td>
+                            <td>{{ .configdata.ScrapeIntervalSec }}</td>
+                        </tr>
+                        <tr>
+                            <td>Scraping Count Since Start</td>
+                            <td>{{ .configdata.ScrapeCount }}</td>
+                        </tr>
+                        </tbody>
+                </table>
+                <h2>Server</h2>
+                <table class="table table-striped table-sm">
+                    <thead>
+                        <tr>
+                        <th scope="col" style="width: 50%">Variable</th>
+                        <th scope="col" style="width: 50%">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Host</td>
+                            <td>{{ .configdata.ServerHost }}</td>
+                        </tr>
+                        <tr>
+                            <td>Port</td>
+                            <td>{{ .configdata.ServerPort }}</td>
+                        </tr>
+                        <tr>
+                            <td>TLS Port</td>
+                            <td>{{ .configdata.ServerTlsPort }}</td>
+                        </tr>
+                        <tr>
+                            <td>Graceful Shutdown Time</td>
+                            <td>{{ .configdata.ServerGracefulShutdownTime }}</td>
+                        </tr>
+                        <tr>
+                            <td>Use TLS</td>
+                            <td>{{ .configdata.ServerUseTls }}</td>
+                        </tr>
+                        <tr>
+                            <td>Certificate File</td>
+                            <td>{{ .configdata.ServerCertFile }}</td>
+                        </tr>
+                        <tr>
+                            <td>Key File</td>
+                            <td>{{ .configdata.ServerKeyFile }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <h2>Miscellaneous</h2>
+                <table class="table table-striped table-sm">
+                    <thead>
+                        <tr>
+                        <th scope="col" style="width: 50%">Variable</th>
+                        <th scope="col" style="width: 50%">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Start Date</td>
+                            <td>{{ .configdata.StartDate }}</td>
+                        </tr>
+                        <tr>
+                            <td>Gin-Gonic Mode</td>
+                            <td>{{ .configdata.GinMode }}</td>
+                        </tr>
+                        </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
 {{ template "footer" .}}
