@@ -25,17 +25,21 @@ type AppConfig struct {
 		Mode string `envconfig:"GIN_MODE" default:"debug"`
 	}
 	Scrape struct {
-		Url         string `envconfig:"SCRAPE_URL"`
-		IntervalSec int    `envconfig:"SCRAPE_INTERVAL_SEC" default:"5"`
-		NumExpected int    `envconfig:"NUM_STREAMS_EXPECTED" default:"5"`
+		Url                string `envconfig:"SCRAPE_URL"`
+		IntervalSec        int    `envconfig:"SCRAPE_INTERVAL_SEC" default:"5"`
+		NumExpected        int    `envconfig:"NUM_STREAMS_EXPECTED" default:"5"`
+		ExpectedServerName string `envconfig:"EXPECTED_SERVER_NAME" default:"coloRadio"`
+	}
+	Metrics struct {
+		ListenerGauge prometheus.GaugeVec
+		ScrapeCount   prometheus.Counter
 	}
 	RunTime struct {
-		Router        *gin.Engine
-		ListenAddr    string
-		StartDate     time.Time
-		ScrapeCount   uint64
-		Terminate     bool
-		StreamMetrics prometheus.GaugeVec
+		Router      *gin.Engine
+		ListenAddr  string
+		StartDate   time.Time
+		Terminate   bool
+		ScrapeCount uint64
 	}
 }
 
@@ -50,8 +54,8 @@ func InitConfig(file string, config *AppConfig) api_error.ApiErr {
 	if err != nil {
 		return api_error.NewInternalServerError("Could not initalize configuration. Check your environment variables", err)
 	}
-	config.RunTime.ScrapeCount = 0
 	config.RunTime.Terminate = false
+	config.RunTime.ScrapeCount = 0
 	logger.Info("Done initalizing configuration")
 	return nil
 }

@@ -48,48 +48,55 @@ func (s DefaultScrapeService) Scrape() {
 	logger.Info(fmt.Sprintf("Starting to scrape %v", s.Cfg.Scrape.Url))
 
 	for !s.Cfg.RunTime.Terminate {
-		// Log and increase scrape count
 		s.Cfg.RunTime.ScrapeCount++
-		logger.Info(fmt.Sprintf("Scrape loop: %v", s.Cfg.RunTime.ScrapeCount))
-		// get data
-		resp, err := httpClient.Get(s.Cfg.Scrape.Url)
-		if err != nil {
-			logger.Error("Error while scraping", err)
-		}
-		defer resp.Body.Close()
-
-		// read data from body
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			logger.Error("Error while reading scrape response", err)
-		}
-
-		// Sanitize data
-		// Icecast sometimes delivery an unescaped dash ("-") for the "title" field which causes the JSON parsiong to fail
-		saniBody := strings.ReplaceAll(string(body), " - ", "null")
-
-		// Unmarshal to json
-		err = json.Unmarshal([]byte(saniBody), &streamData)
-		if err != nil {
-			logger.Error("Error while converting to JSON", err)
-		}
-
-		// Parse sources
-		streamCount := 0
-		for _, source := range streamData.Icestats.Source {
-			if source.ServerName == "coloRadio" {
-				streamCount++
-				name := domain.StreamNames[source.Listenurl]
-				listeners := source.Listeners
-				//logger.Info(fmt.Sprintf("Stream: %v - Listeners: %v", name, listeners))
-				s.Cfg.RunTime.StreamMetrics.WithLabelValues(name).Set(float64(listeners))
-			}
-		}
-		// Check stream count
+		s.Cfg.Metrics.ScrapeCount.Inc()
+		_, body := GetDataFromUrl(s)
+		sanitizedBody := sanitize(body)
+		unMarshall(sanitizedBody, streamData)
+		streamCount := UpdateMetrics(streamData, s)
 		if streamCount != s.Cfg.Scrape.NumExpected {
 			logger.Warn(fmt.Sprintf("Expected %v streams, but received %v", s.Cfg.Scrape.NumExpected, streamCount))
 		}
-
 		time.Sleep(time.Duration(s.Cfg.Scrape.IntervalSec) * time.Second)
 	}
+	logger.Info(fmt.Sprintf("Stopping to scrape %v", s.Cfg.Scrape.Url))
+}
+
+func UpdateMetrics(streamData domain.IceCastStats, s DefaultScrapeService) int {
+	streamCount := 0
+	for _, source := range streamData.Icestats.Source {
+		if source.ServerName == s.Cfg.Scrape.ExpectedServerName {
+			streamCount++
+			name := domain.StreamNames[source.Listenurl]
+			listeners := source.Listeners
+			s.Cfg.Metrics.ListenerGauge.WithLabelValues(name).Set(float64(listeners))
+		}
+	}
+	return streamCount
+}
+
+func unMarshall(sanitizedBody string, streamData domain.IceCastStats) {
+	err := json.Unmarshal([]byte(sanitizedBody), &streamData)
+	if err != nil {
+		logger.Error("Error while converting to JSON", err)
+	}
+}
+
+func sanitize(body []byte) string {
+	saniBody := strings.ReplaceAll(string(body), " - ", "null")
+	return saniBody
+}
+
+func GetDataFromUrl(s DefaultScrapeService) (error, []byte) {
+	resp, err := httpClient.Get(s.Cfg.Scrape.Url)
+	if err != nil {
+		logger.Error("Error while scraping", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error("Error while reading scrape response", err)
+	}
+	return err, body
 }

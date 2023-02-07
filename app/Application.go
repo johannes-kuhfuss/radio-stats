@@ -106,7 +106,7 @@ func initServer() {
 }
 
 func initMetrics() {
-	cfg.RunTime.StreamMetrics = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	cfg.Metrics.ListenerGauge = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "Coloradio",
 		Subsystem: "Streams",
 		Name:      "listener_count",
@@ -114,7 +114,14 @@ func initMetrics() {
 	}, []string{
 		"streamName",
 	})
-	prometheus.MustRegister(cfg.RunTime.StreamMetrics)
+	cfg.Metrics.ScrapeCount = prometheus.NewCounter(prometheus.CounterOpts{
+		Namespace: "Coloradio",
+		Subsystem: "Streams",
+		Name:      "scrape_count",
+		Help:      "Number of times stream count data was retrieved frmo streaming server",
+	})
+	prometheus.MustRegister(cfg.Metrics.ListenerGauge)
+	prometheus.MustRegister(cfg.Metrics.ScrapeCount)
 }
 
 func wireApp() {
