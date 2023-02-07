@@ -26,6 +26,7 @@ type AppConfig struct {
 	Scrape struct {
 		Url         string `envconfig:"SCRAPE_URL"`
 		IntervalSec int    `envconfig:"SCRAPE_INTERVAL_SEC" default:"1"`
+		NumExpected int    `envconfig:"NUM_STREAMS_EXPECTED" default:"5"`
 	}
 	RunTime struct {
 		Router      *gin.Engine

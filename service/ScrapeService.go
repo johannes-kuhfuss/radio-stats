@@ -75,12 +75,18 @@ func (s DefaultScrapeService) Scrape() {
 		}
 
 		// Parse sources
+		streamCount := 0
 		for _, source := range streamData.Icestats.Source {
 			if source.ServerName == "coloRadio" {
-				name := source.Listenurl
+				streamCount++
+				name := domain.StreamNames[source.Listenurl]
 				listeners := source.Listeners
 				logger.Info(fmt.Sprintf("Stream: %v - Listeners: %v", name, listeners))
 			}
+		}
+		// Check stream count
+		if streamCount != s.Cfg.Scrape.NumExpected {
+			logger.Warn(fmt.Sprintf("Expected %v streams, but received %v", s.Cfg.Scrape.NumExpected, streamCount))
 		}
 
 		time.Sleep(time.Duration(s.Cfg.Scrape.IntervalSec) * time.Second)
