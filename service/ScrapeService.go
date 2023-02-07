@@ -56,12 +56,12 @@ func (s DefaultScrapeService) Scrape() {
 	if err != nil {
 		logger.Error("Error while reading scrape response", err)
 	}
-	// sanitize data
-	saniData := strings.ReplaceAll(string(body), " - ", " \"-\" ")
+	// Sanitize data
+	// Icecast sometimes delivery an unescaped dash ("-") for the "title" field which causes the JSON parsiong to fail
+	saniBody := strings.ReplaceAll(string(body), " - ", "null")
 	// Unmarshal to json
-	err = json.Unmarshal([]byte(saniData), &streamData)
+	err = json.Unmarshal([]byte(saniBody), &streamData)
 	if err != nil {
 		logger.Error("Error while converting to JSON", err)
 	}
-	//logger.Info(string(body))
 }
