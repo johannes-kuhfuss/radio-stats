@@ -14,6 +14,7 @@ import (
 	"github.com/johannes-kuhfuss/radio-stats/config"
 	"github.com/johannes-kuhfuss/radio-stats/handlers"
 	"github.com/johannes-kuhfuss/radio-stats/service"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/johannes-kuhfuss/services_utils/date"
 	"github.com/johannes-kuhfuss/services_utils/logger"
@@ -37,6 +38,7 @@ func StartApp() {
 	}
 	initRouter()
 	initServer()
+	initMetrics()
 	wireApp()
 	mapUrls()
 	RegisterForOsSignals()
@@ -102,6 +104,10 @@ func initServer() {
 	}
 }
 
+func initMetrics() {
+
+}
+
 func wireApp() {
 	statsUiHandler = handlers.NewStatsUiHandler(&cfg)
 	scrapeService = service.NewScrapeService(&cfg)
@@ -110,6 +116,7 @@ func wireApp() {
 func mapUrls() {
 	cfg.RunTime.Router.GET("/", statsUiHandler.StatusPage)
 	cfg.RunTime.Router.GET("/about", statsUiHandler.AboutPage)
+	cfg.RunTime.Router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 }
 
 func RegisterForOsSignals() {
