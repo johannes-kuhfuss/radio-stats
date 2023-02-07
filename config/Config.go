@@ -25,13 +25,14 @@ type AppConfig struct {
 	}
 	Scrape struct {
 		Url         string `envconfig:"SCRAPE_URL"`
-		IntervalSec int    `envconfig:"SCRAPE_INTERVAL_SEC" default:"10"`
+		IntervalSec int    `envconfig:"SCRAPE_INTERVAL_SEC" default:"1"`
 	}
 	RunTime struct {
 		Router      *gin.Engine
 		ListenAddr  string
 		StartDate   time.Time
 		ScrapeCount uint64
+		Terminate   bool
 	}
 }
 
@@ -47,6 +48,7 @@ func InitConfig(file string, config *AppConfig) api_error.ApiErr {
 		return api_error.NewInternalServerError("Could not initalize configuration. Check your environment variables", err)
 	}
 	config.RunTime.ScrapeCount = 0
+	config.RunTime.Terminate = false
 	logger.Info("Done initalizing configuration")
 	return nil
 }

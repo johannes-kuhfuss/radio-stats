@@ -138,6 +138,7 @@ func startScraping() {
 }
 
 func cleanUp() {
+	cfg.RunTime.Terminate = true
 	shutdownTime := time.Duration(cfg.Server.GracefulShutdownTime) * time.Second
 	ctx, cancel = context.WithTimeout(context.Background(), shutdownTime)
 	defer func() {
