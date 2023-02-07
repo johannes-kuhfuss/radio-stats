@@ -47,19 +47,18 @@ func (s DefaultScrapeService) Scrape() {
 	var streamData domain.IceCastStats
 	logger.Info(fmt.Sprintf("Starting to scrape %v", s.Cfg.Scrape.Url))
 
-	for !s.Cfg.RunTime.Terminate {
+	for {
 		s.Cfg.RunTime.ScrapeCount++
 		s.Cfg.Metrics.ScrapeCount.Inc()
 		_, body := GetDataFromUrl(s)
 		sanitizedBody := sanitize(body)
-		unMarshall(sanitizedBody, streamData)
+		streamData = unMarshall(sanitizedBody)
 		streamCount := UpdateMetrics(streamData, s)
 		if streamCount != s.Cfg.Scrape.NumExpected {
 			logger.Warn(fmt.Sprintf("Expected %v streams, but received %v", s.Cfg.Scrape.NumExpected, streamCount))
 		}
 		time.Sleep(time.Duration(s.Cfg.Scrape.IntervalSec) * time.Second)
 	}
-	logger.Info(fmt.Sprintf("Stopping to scrape %v", s.Cfg.Scrape.Url))
 }
 
 func UpdateMetrics(streamData domain.IceCastStats, s DefaultScrapeService) int {
@@ -75,11 +74,13 @@ func UpdateMetrics(streamData domain.IceCastStats, s DefaultScrapeService) int {
 	return streamCount
 }
 
-func unMarshall(sanitizedBody string, streamData domain.IceCastStats) {
+func unMarshall(sanitizedBody string) domain.IceCastStats {
+	var streamData domain.IceCastStats
 	err := json.Unmarshal([]byte(sanitizedBody), &streamData)
 	if err != nil {
 		logger.Error("Error while converting to JSON", err)
 	}
+	return streamData
 }
 
 func sanitize(body []byte) string {

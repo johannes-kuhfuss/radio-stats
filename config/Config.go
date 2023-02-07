@@ -22,7 +22,7 @@ type AppConfig struct {
 		KeyFile              string `envconfig:"KEY_FILE" default:"./cert/cert.key"`
 	}
 	Gin struct {
-		Mode string `envconfig:"GIN_MODE" default:"debug"`
+		Mode string `envconfig:"GIN_MODE" default:"release"`
 	}
 	Scrape struct {
 		Url                string `envconfig:"SCRAPE_URL"`
@@ -38,7 +38,6 @@ type AppConfig struct {
 		Router      *gin.Engine
 		ListenAddr  string
 		StartDate   time.Time
-		Terminate   bool
 		ScrapeCount uint64
 	}
 }
@@ -54,7 +53,6 @@ func InitConfig(file string, config *AppConfig) api_error.ApiErr {
 	if err != nil {
 		return api_error.NewInternalServerError("Could not initalize configuration. Check your environment variables", err)
 	}
-	config.RunTime.Terminate = false
 	config.RunTime.ScrapeCount = 0
 	logger.Info("Done initalizing configuration")
 	return nil
