@@ -8,6 +8,7 @@ import (
 	"github.com/johannes-kuhfuss/services_utils/logger"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type AppConfig struct {
@@ -25,15 +26,16 @@ type AppConfig struct {
 	}
 	Scrape struct {
 		Url         string `envconfig:"SCRAPE_URL"`
-		IntervalSec int    `envconfig:"SCRAPE_INTERVAL_SEC" default:"1"`
+		IntervalSec int    `envconfig:"SCRAPE_INTERVAL_SEC" default:"5"`
 		NumExpected int    `envconfig:"NUM_STREAMS_EXPECTED" default:"5"`
 	}
 	RunTime struct {
-		Router      *gin.Engine
-		ListenAddr  string
-		StartDate   time.Time
-		ScrapeCount uint64
-		Terminate   bool
+		Router        *gin.Engine
+		ListenAddr    string
+		StartDate     time.Time
+		ScrapeCount   uint64
+		Terminate     bool
+		StreamMetrics prometheus.GaugeVec
 	}
 }
 

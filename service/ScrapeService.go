@@ -81,7 +81,8 @@ func (s DefaultScrapeService) Scrape() {
 				streamCount++
 				name := domain.StreamNames[source.Listenurl]
 				listeners := source.Listeners
-				logger.Info(fmt.Sprintf("Stream: %v - Listeners: %v", name, listeners))
+				//logger.Info(fmt.Sprintf("Stream: %v - Listeners: %v", name, listeners))
+				s.Cfg.RunTime.StreamMetrics.WithLabelValues(name).Set(float64(listeners))
 			}
 		}
 		// Check stream count

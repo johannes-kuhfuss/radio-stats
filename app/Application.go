@@ -14,6 +14,7 @@ import (
 	"github.com/johannes-kuhfuss/radio-stats/config"
 	"github.com/johannes-kuhfuss/radio-stats/handlers"
 	"github.com/johannes-kuhfuss/radio-stats/service"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/johannes-kuhfuss/services_utils/date"
@@ -105,7 +106,15 @@ func initServer() {
 }
 
 func initMetrics() {
-
+	cfg.RunTime.StreamMetrics = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "Coloradio",
+		Subsystem: "Streams",
+		Name:      "listener_count",
+		Help:      "Number of listeners per stream",
+	}, []string{
+		"streamName",
+	})
+	prometheus.MustRegister(cfg.RunTime.StreamMetrics)
 }
 
 func wireApp() {
