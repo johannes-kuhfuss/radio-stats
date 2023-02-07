@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/radio-stats/config"
 	"github.com/johannes-kuhfuss/radio-stats/handlers"
+	"github.com/johannes-kuhfuss/radio-stats/service"
 
 	"github.com/johannes-kuhfuss/services_utils/date"
 	"github.com/johannes-kuhfuss/services_utils/logger"
@@ -25,6 +26,7 @@ var (
 	ctx            context.Context
 	cancel         context.CancelFunc
 	statsUiHandler handlers.StatsUiHandler
+	scrapeService  service.DefaultScrapeService
 )
 
 func StartApp() {
@@ -39,6 +41,7 @@ func StartApp() {
 	mapUrls()
 	RegisterForOsSignals()
 	go startServer()
+	go startScraping()
 
 	<-appEnd
 	cleanUp()
@@ -101,6 +104,7 @@ func initServer() {
 
 func wireApp() {
 	statsUiHandler = handlers.NewStatsUiHandler(&cfg)
+	scrapeService = service.NewScrapeService(&cfg)
 }
 
 func mapUrls() {
@@ -127,6 +131,10 @@ func startServer() {
 			panic(err)
 		}
 	}
+}
+
+func startScraping() {
+	scrapeService.Scrape()
 }
 
 func cleanUp() {
