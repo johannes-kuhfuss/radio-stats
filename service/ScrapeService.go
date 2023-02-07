@@ -43,7 +43,7 @@ func InitHttp() {
 }
 
 func (s DefaultScrapeService) Scrape() {
-	var streamData domain.IceStats
+	var streamData domain.IceCastStats
 	logger.Info(fmt.Sprintf("Starting to scrape %v", s.Cfg.Scrape.Url))
 	// get data
 	resp, err := httpClient.Get(s.Cfg.Scrape.Url)
@@ -63,5 +63,11 @@ func (s DefaultScrapeService) Scrape() {
 	err = json.Unmarshal([]byte(saniBody), &streamData)
 	if err != nil {
 		logger.Error("Error while converting to JSON", err)
+	}
+	// Parse sources
+	for _, source := range streamData.Icestats.Source {
+		if source.ServerName == "coloRadio" {
+			logger.Info(fmt.Sprintf("Source: %v", source))
+		}
 	}
 }
