@@ -50,15 +50,50 @@ func (s DefaultScrapeService) Scrape() {
 	for {
 		s.Cfg.RunTime.ScrapeCount++
 		s.Cfg.Metrics.ScrapeCount.Inc()
-		_, body := GetDataFromUrl(s)
-		sanitizedBody := sanitize(body)
-		streamData = unMarshall(sanitizedBody)
-		streamCount := UpdateMetrics(streamData, s)
-		if streamCount != s.Cfg.Scrape.NumExpected {
-			logger.Warn(fmt.Sprintf("Expected %v streams, but received %v", s.Cfg.Scrape.NumExpected, streamCount))
+		body, err := GetDataFromUrl(s)
+		if err == nil {
+			sanitizedBody := sanitize(body)
+			streamData, err = unMarshall(sanitizedBody)
+			if err == nil {
+				streamCount := UpdateMetrics(streamData, s)
+				if streamCount != s.Cfg.Scrape.NumExpected {
+					logger.Warn(fmt.Sprintf("Expected %v streams, but received %v", s.Cfg.Scrape.NumExpected, streamCount))
+				}
+			}
 		}
 		time.Sleep(time.Duration(s.Cfg.Scrape.IntervalSec) * time.Second)
 	}
+}
+
+func GetDataFromUrl(s DefaultScrapeService) ([]byte, error) {
+	resp, err := httpClient.Get(s.Cfg.Scrape.Url)
+	if err != nil {
+		logger.Error("Error while scraping", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error("Error while reading scrape response", err)
+		return nil, err
+	}
+	return body, nil
+}
+
+func sanitize(body []byte) string {
+	saniBody := strings.ReplaceAll(string(body), " - ", "null")
+	return saniBody
+}
+
+func unMarshall(sanitizedBody string) (domain.IceCastStats, error) {
+	var streamData domain.IceCastStats
+	err := json.Unmarshal([]byte(sanitizedBody), &streamData)
+	if err != nil {
+		logger.Error("Error while converting to JSON", err)
+		return streamData, err
+	}
+	return streamData, nil
 }
 
 func UpdateMetrics(streamData domain.IceCastStats, s DefaultScrapeService) int {
@@ -72,32 +107,4 @@ func UpdateMetrics(streamData domain.IceCastStats, s DefaultScrapeService) int {
 		}
 	}
 	return streamCount
-}
-
-func unMarshall(sanitizedBody string) domain.IceCastStats {
-	var streamData domain.IceCastStats
-	err := json.Unmarshal([]byte(sanitizedBody), &streamData)
-	if err != nil {
-		logger.Error("Error while converting to JSON", err)
-	}
-	return streamData
-}
-
-func sanitize(body []byte) string {
-	saniBody := strings.ReplaceAll(string(body), " - ", "null")
-	return saniBody
-}
-
-func GetDataFromUrl(s DefaultScrapeService) (error, []byte) {
-	resp, err := httpClient.Get(s.Cfg.Scrape.Url)
-	if err != nil {
-		logger.Error("Error while scraping", err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		logger.Error("Error while reading scrape response", err)
-	}
-	return err, body
 }
