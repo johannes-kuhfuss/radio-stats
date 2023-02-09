@@ -44,29 +44,33 @@ func InitHttp() {
 }
 
 func (s DefaultScrapeService) Scrape() {
-	var streamData domain.IceCastStats
 	logger.Info(fmt.Sprintf("Starting to scrape %v", s.Cfg.Scrape.Url))
 
 	for {
-		s.Cfg.RunTime.ScrapeCount++
-		s.Cfg.Metrics.ScrapeCount.Inc()
-		body, err := GetDataFromUrl(s)
-		if err == nil {
-			sanitizedBody := sanitize(body)
-			streamData, err = unMarshall(sanitizedBody)
-			if err == nil {
-				streamCount := UpdateMetrics(streamData, s)
-				if streamCount != s.Cfg.Scrape.NumExpected {
-					logger.Warn(fmt.Sprintf("Expected %v streams, but received %v", s.Cfg.Scrape.NumExpected, streamCount))
-				}
-			}
-		}
+		ScrapeRun(s)
 		time.Sleep(time.Duration(s.Cfg.Scrape.IntervalSec) * time.Second)
 	}
 }
 
-func GetDataFromUrl(s DefaultScrapeService) ([]byte, error) {
-	resp, err := httpClient.Get(s.Cfg.Scrape.Url)
+func ScrapeRun(s DefaultScrapeService) {
+	var streamData domain.IceCastStats
+	s.Cfg.RunTime.ScrapeCount++
+	s.Cfg.Metrics.ScrapeCount.Inc()
+	body, err := GetDataFromUrl(s.Cfg.Scrape.Url)
+	if err == nil {
+		sanitizedBody := sanitize(body)
+		streamData, err = unMarshall(sanitizedBody)
+		if err == nil {
+			streamCount := UpdateMetrics(streamData, s)
+			if streamCount != s.Cfg.Scrape.NumExpected {
+				logger.Warn(fmt.Sprintf("Expected %v streams, but received %v", s.Cfg.Scrape.NumExpected, streamCount))
+			}
+		}
+	}
+}
+
+func GetDataFromUrl(Url string) ([]byte, error) {
+	resp, err := httpClient.Get(Url)
 	if err != nil {
 		logger.Error("Error while scraping", err)
 		return nil, err
