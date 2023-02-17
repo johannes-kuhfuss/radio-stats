@@ -29,7 +29,7 @@ func NewGpioPollService(cfg *config.AppConfig) DefaultGpioPollService {
 
 func connectSerial(portName string) *serial.Port {
 	mode := &serial.Mode{
-		BaudRate: 9600,
+		BaudRate: 19200,
 	}
 	port, err := serial.Open(portName, mode)
 	if err != nil {
@@ -43,7 +43,7 @@ func (s DefaultGpioPollService) Poll() {
 	logger.Info(fmt.Sprintf("Starting to poll GPIOs on port %v", s.Cfg.Gpio.SerialPort))
 	buff := make([]byte, 100)
 	for {
-		_, err := s.serialPort.Write([]byte("gpio read 0\n\r"))
+		_, err := s.serialPort.Write([]byte("gpio readall\n\r"))
 		if err != nil {
 			logger.Error("Error writing to serial port: ", err)
 		}

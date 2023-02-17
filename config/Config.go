@@ -32,7 +32,7 @@ type AppConfig struct {
 	}
 	Gpio struct {
 		SerialPort          string `envconfig:"GPIO_SERIAL_PORT"`
-		GpioPollIntervalSec int    `envconfig:"GPIO_POLL_INTERVAL_SEC" default:"5"`
+		GpioPollIntervalSec int    `envconfig:"GPIO_POLL_INTERVAL_SEC" default:"1"`
 		Gpio01Name          string `envconfig:"GPIO_01_NAME" default:"IO 01"`
 		Gpio02Name          string `envconfig:"GPIO_02_NAME" default:"IO 02"`
 		Gpio03Name          string `envconfig:"GPIO_03_NAME" default:"IO 03"`
