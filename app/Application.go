@@ -29,6 +29,7 @@ var (
 	cancel              context.CancelFunc
 	statsUiHandler      handlers.StatsUiHandler
 	streamScrapeService service.DefaultStreamScrapeService
+	gpioPollService     service.DefaultGpioPollService
 )
 
 func StartApp() {
@@ -44,7 +45,8 @@ func StartApp() {
 	mapUrls()
 	RegisterForOsSignals()
 	go startServer()
-	go startScraping()
+	go startStreamScraping()
+	go startGpioPolling()
 
 	<-appEnd
 	cleanUp()
@@ -126,7 +128,8 @@ func initMetrics() {
 
 func wireApp() {
 	statsUiHandler = handlers.NewStatsUiHandler(&cfg)
-	streamScrapeService = service.NewScrapeService(&cfg)
+	streamScrapeService = service.NewStreamScrapeService(&cfg)
+	gpioPollService = service.NewGpioPollService(&cfg)
 }
 
 func mapUrls() {
@@ -156,8 +159,12 @@ func startServer() {
 	}
 }
 
-func startScraping() {
+func startStreamScraping() {
 	streamScrapeService.Scrape()
+}
+
+func startGpioPolling() {
+	gpioPollService.Poll()
 }
 
 func cleanUp() {

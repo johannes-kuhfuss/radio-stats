@@ -13,7 +13,7 @@ import (
 	"github.com/johannes-kuhfuss/services_utils/logger"
 )
 
-type ScrapeService interface {
+type StreamScrapeService interface {
 	Scrape()
 }
 
@@ -26,7 +26,7 @@ var (
 	httpClient http.Client
 )
 
-func NewScrapeService(cfg *config.AppConfig) DefaultStreamScrapeService {
+func NewStreamScrapeService(cfg *config.AppConfig) DefaultStreamScrapeService {
 	InitHttp()
 	return DefaultStreamScrapeService{
 		Cfg: cfg,
