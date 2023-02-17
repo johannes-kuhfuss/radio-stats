@@ -120,7 +120,7 @@ func initMetrics() {
 		Namespace: "Coloradio",
 		Subsystem: "Streams",
 		Name:      "scrape_count",
-		Help:      "Number of times stream count data was retrieved frmo streaming server",
+		Help:      "Number of times stream count data was retrieved from streaming server",
 	})
 	cfg.Metrics.GpioStateGauge = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "Coloradio",
