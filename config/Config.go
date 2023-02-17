@@ -25,21 +25,22 @@ type AppConfig struct {
 		Mode string `envconfig:"GIN_MODE" default:"release"`
 	}
 	StreamScrape struct {
-		Url                string `envconfig:"SCRAPE_URL"`
-		IntervalSec        int    `envconfig:"SCRAPE_INTERVAL_SEC" default:"5"`
+		Url                string `envconfig:"STREAM_SCRAPE_URL"`
+		IntervalSec        int    `envconfig:"STREAM_SCRAPE_INTERVAL_SEC" default:"5"`
 		NumExpected        int    `envconfig:"NUM_STREAMS_EXPECTED" default:"5"`
 		ExpectedServerName string `envconfig:"EXPECTED_SERVER_NAME" default:"coloRadio"`
 	}
 	Gpio struct {
-		SerialPort string `envconfig:"SERIAL_PORT"`
-		Gpio01Name string `envconfig:"GPIO_01_NAME" default:"IO 01"`
-		Gpio02Name string `envconfig:"GPIO_02_NAME" default:"IO 02"`
-		Gpio03Name string `envconfig:"GPIO_03_NAME" default:"IO 03"`
-		Gpio04Name string `envconfig:"GPIO_04_NAME" default:"IO 04"`
-		Gpio05Name string `envconfig:"GPIO_05_NAME" default:"IO 05"`
-		Gpio06Name string `envconfig:"GPIO_06_NAME" default:"IO 06"`
-		Gpio07Name string `envconfig:"GPIO_07_NAME" default:"IO 07"`
-		Gpio08Name string `envconfig:"GPIO_08_NAME" default:"IO 08"`
+		SerialPort          string `envconfig:"GPIO_SERIAL_PORT"`
+		GpioPollIntervalSec int    `envconfig:"GPIO_POLL_INTERVAL_SEC" default:"5"`
+		Gpio01Name          string `envconfig:"GPIO_01_NAME" default:"IO 01"`
+		Gpio02Name          string `envconfig:"GPIO_02_NAME" default:"IO 02"`
+		Gpio03Name          string `envconfig:"GPIO_03_NAME" default:"IO 03"`
+		Gpio04Name          string `envconfig:"GPIO_04_NAME" default:"IO 04"`
+		Gpio05Name          string `envconfig:"GPIO_05_NAME" default:"IO 05"`
+		Gpio06Name          string `envconfig:"GPIO_06_NAME" default:"IO 06"`
+		Gpio07Name          string `envconfig:"GPIO_07_NAME" default:"IO 07"`
+		Gpio08Name          string `envconfig:"GPIO_08_NAME" default:"IO 08"`
 	}
 	Metrics struct {
 		StreamListenerGauge prometheus.GaugeVec
