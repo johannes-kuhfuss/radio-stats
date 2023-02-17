@@ -45,7 +45,7 @@ type AppConfig struct {
 	Metrics struct {
 		StreamListenerGauge prometheus.GaugeVec
 		StreamScrapeCount   prometheus.Counter
-		GpioState           prometheus.GaugeVec
+		GpioStateGauge      prometheus.GaugeVec
 	}
 	RunTime struct {
 		Router            *gin.Engine

@@ -122,8 +122,17 @@ func initMetrics() {
 		Name:      "scrape_count",
 		Help:      "Number of times stream count data was retrieved frmo streaming server",
 	})
+	cfg.Metrics.GpioStateGauge = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "Coloradio",
+		Subsystem: "GPIOs",
+		Name:      "status",
+		Help:      "Status of GPIO - 1 = active, 0 = inactive",
+	}, []string{
+		"gpioName",
+	})
 	prometheus.MustRegister(cfg.Metrics.StreamListenerGauge)
 	prometheus.MustRegister(cfg.Metrics.StreamScrapeCount)
+	prometheus.MustRegister(cfg.Metrics.GpioStateGauge)
 }
 
 func wireApp() {
