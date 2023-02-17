@@ -24,21 +24,41 @@ type AppConfig struct {
 	Gin struct {
 		Mode string `envconfig:"GIN_MODE" default:"release"`
 	}
-	Scrape struct {
+	StreamScrape struct {
 		Url                string `envconfig:"SCRAPE_URL"`
 		IntervalSec        int    `envconfig:"SCRAPE_INTERVAL_SEC" default:"5"`
 		NumExpected        int    `envconfig:"NUM_STREAMS_EXPECTED" default:"5"`
 		ExpectedServerName string `envconfig:"EXPECTED_SERVER_NAME" default:"coloRadio"`
 	}
+	Gpio struct {
+		SerialPort string `envconfig:"SERIAL_PORT"`
+		Gpio01Name string `envconfig:"GPIO_01_NAME" default:"IO 01"`
+		Gpio02Name string `envconfig:"GPIO_02_NAME" default:"IO 02"`
+		Gpio03Name string `envconfig:"GPIO_03_NAME" default:"IO 03"`
+		Gpio04Name string `envconfig:"GPIO_04_NAME" default:"IO 04"`
+		Gpio05Name string `envconfig:"GPIO_05_NAME" default:"IO 05"`
+		Gpio06Name string `envconfig:"GPIO_06_NAME" default:"IO 06"`
+		Gpio07Name string `envconfig:"GPIO_07_NAME" default:"IO 07"`
+		Gpio08Name string `envconfig:"GPIO_08_NAME" default:"IO 08"`
+	}
 	Metrics struct {
-		ListenerGauge prometheus.GaugeVec
-		ScrapeCount   prometheus.Counter
+		StreamListenerGauge prometheus.GaugeVec
+		StreamScrapeCount   prometheus.Counter
+		GpioState           prometheus.GaugeVec
 	}
 	RunTime struct {
-		Router      *gin.Engine
-		ListenAddr  string
-		StartDate   time.Time
-		ScrapeCount uint64
+		Router            *gin.Engine
+		ListenAddr        string
+		StartDate         time.Time
+		StreamScrapeCount uint64
+		Gpio01State       bool
+		Gpio02State       bool
+		Gpio03State       bool
+		Gpio04State       bool
+		Gpio05State       bool
+		Gpio06State       bool
+		Gpio07State       bool
+		Gpio08State       bool
 	}
 }
 
@@ -53,7 +73,15 @@ func InitConfig(file string, config *AppConfig) api_error.ApiErr {
 	if err != nil {
 		return api_error.NewInternalServerError("Could not initalize configuration. Check your environment variables", err)
 	}
-	config.RunTime.ScrapeCount = 0
+	config.RunTime.StreamScrapeCount = 0
+	config.RunTime.Gpio01State = false
+	config.RunTime.Gpio02State = false
+	config.RunTime.Gpio03State = false
+	config.RunTime.Gpio04State = false
+	config.RunTime.Gpio05State = false
+	config.RunTime.Gpio06State = false
+	config.RunTime.Gpio07State = false
+	config.RunTime.Gpio08State = false
 	logger.Info("Done initalizing configuration")
 	return nil
 }

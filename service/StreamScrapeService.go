@@ -17,7 +17,7 @@ type ScrapeService interface {
 	Scrape()
 }
 
-type DefaultScrapeService struct {
+type DefaultStreamScrapeService struct {
 	Cfg *config.AppConfig
 }
 
@@ -26,9 +26,9 @@ var (
 	httpClient http.Client
 )
 
-func NewScrapeService(cfg *config.AppConfig) DefaultScrapeService {
+func NewScrapeService(cfg *config.AppConfig) DefaultStreamScrapeService {
 	InitHttp()
-	return DefaultScrapeService{
+	return DefaultStreamScrapeService{
 		Cfg: cfg,
 	}
 }
@@ -43,27 +43,27 @@ func InitHttp() {
 	httpClient = http.Client{Transport: &httpTr}
 }
 
-func (s DefaultScrapeService) Scrape() {
-	logger.Info(fmt.Sprintf("Starting to scrape %v", s.Cfg.Scrape.Url))
+func (s DefaultStreamScrapeService) Scrape() {
+	logger.Info(fmt.Sprintf("Starting to scrape %v", s.Cfg.StreamScrape.Url))
 
 	for {
 		ScrapeRun(s)
-		time.Sleep(time.Duration(s.Cfg.Scrape.IntervalSec) * time.Second)
+		time.Sleep(time.Duration(s.Cfg.StreamScrape.IntervalSec) * time.Second)
 	}
 }
 
-func ScrapeRun(s DefaultScrapeService) {
+func ScrapeRun(s DefaultStreamScrapeService) {
 	var streamData domain.IceCastStats
-	s.Cfg.RunTime.ScrapeCount++
-	s.Cfg.Metrics.ScrapeCount.Inc()
-	body, err := GetDataFromUrl(s.Cfg.Scrape.Url)
+	s.Cfg.RunTime.StreamScrapeCount++
+	s.Cfg.Metrics.StreamScrapeCount.Inc()
+	body, err := GetDataFromUrl(s.Cfg.StreamScrape.Url)
 	if err == nil {
 		sanitizedBody := sanitize(body)
 		streamData, err = unMarshall(sanitizedBody)
 		if err == nil {
 			streamCount := UpdateMetrics(streamData, s)
-			if streamCount != s.Cfg.Scrape.NumExpected {
-				logger.Warn(fmt.Sprintf("Expected %v streams, but received %v", s.Cfg.Scrape.NumExpected, streamCount))
+			if streamCount != s.Cfg.StreamScrape.NumExpected {
+				logger.Warn(fmt.Sprintf("Expected %v streams, but received %v", s.Cfg.StreamScrape.NumExpected, streamCount))
 			}
 		}
 	}
@@ -100,14 +100,14 @@ func unMarshall(sanitizedBody string) (domain.IceCastStats, error) {
 	return streamData, nil
 }
 
-func UpdateMetrics(streamData domain.IceCastStats, s DefaultScrapeService) int {
+func UpdateMetrics(streamData domain.IceCastStats, s DefaultStreamScrapeService) int {
 	streamCount := 0
 	for _, source := range streamData.Icestats.Source {
-		if source.ServerName == s.Cfg.Scrape.ExpectedServerName {
+		if source.ServerName == s.Cfg.StreamScrape.ExpectedServerName {
 			streamCount++
 			name := domain.StreamNames[source.Listenurl]
 			listeners := source.Listeners
-			s.Cfg.Metrics.ListenerGauge.WithLabelValues(name).Set(float64(listeners))
+			s.Cfg.Metrics.StreamListenerGauge.WithLabelValues(name).Set(float64(listeners))
 		}
 	}
 	return streamCount

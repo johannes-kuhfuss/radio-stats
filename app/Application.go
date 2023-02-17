@@ -22,13 +22,13 @@ import (
 )
 
 var (
-	cfg            config.AppConfig
-	server         http.Server
-	appEnd         chan os.Signal
-	ctx            context.Context
-	cancel         context.CancelFunc
-	statsUiHandler handlers.StatsUiHandler
-	scrapeService  service.DefaultScrapeService
+	cfg                 config.AppConfig
+	server              http.Server
+	appEnd              chan os.Signal
+	ctx                 context.Context
+	cancel              context.CancelFunc
+	statsUiHandler      handlers.StatsUiHandler
+	streamScrapeService service.DefaultStreamScrapeService
 )
 
 func StartApp() {
@@ -106,7 +106,7 @@ func initServer() {
 }
 
 func initMetrics() {
-	cfg.Metrics.ListenerGauge = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	cfg.Metrics.StreamListenerGauge = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "Coloradio",
 		Subsystem: "Streams",
 		Name:      "listener_count",
@@ -114,19 +114,19 @@ func initMetrics() {
 	}, []string{
 		"streamName",
 	})
-	cfg.Metrics.ScrapeCount = prometheus.NewCounter(prometheus.CounterOpts{
+	cfg.Metrics.StreamScrapeCount = prometheus.NewCounter(prometheus.CounterOpts{
 		Namespace: "Coloradio",
 		Subsystem: "Streams",
 		Name:      "scrape_count",
 		Help:      "Number of times stream count data was retrieved frmo streaming server",
 	})
-	prometheus.MustRegister(cfg.Metrics.ListenerGauge)
-	prometheus.MustRegister(cfg.Metrics.ScrapeCount)
+	prometheus.MustRegister(cfg.Metrics.StreamListenerGauge)
+	prometheus.MustRegister(cfg.Metrics.StreamScrapeCount)
 }
 
 func wireApp() {
 	statsUiHandler = handlers.NewStatsUiHandler(&cfg)
-	scrapeService = service.NewScrapeService(&cfg)
+	streamScrapeService = service.NewScrapeService(&cfg)
 }
 
 func mapUrls() {
@@ -157,7 +157,7 @@ func startServer() {
 }
 
 func startScraping() {
-	scrapeService.Scrape()
+	streamScrapeService.Scrape()
 }
 
 func cleanUp() {
