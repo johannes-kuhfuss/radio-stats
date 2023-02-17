@@ -41,24 +41,20 @@ func connectSerial(portName string) *serial.Port {
 
 func (s DefaultGpioPollService) Poll() {
 	logger.Info(fmt.Sprintf("Starting to poll GPIOs on port %v", s.Cfg.Gpio.SerialPort))
-	_, err := s.serialPort.Write([]byte("gpio read 0\n\r"))
-	if err != nil {
-		logger.Error("Error writing to serial port: ", err)
-	}
 	buff := make([]byte, 100)
 	for {
+		_, err := s.serialPort.Write([]byte("gpio read 0\n\r"))
+		if err != nil {
+			logger.Error("Error writing to serial port: ", err)
+		}
 		n, err := s.serialPort.Read(buff)
 		if err != nil {
 			logger.Error("Error reading from serial port: ", err)
-			break
 		}
 		if n == 0 {
 			logger.Info("Serial is EOF")
-			break
 		}
 		logger.Info(fmt.Sprintf("Serial data: %v", string(buff[:n])))
-	}
-	for {
 		time.Sleep(time.Duration(s.Cfg.Gpio.GpioPollIntervalSec) * time.Second)
 	}
 }
