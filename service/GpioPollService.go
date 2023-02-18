@@ -18,14 +18,26 @@ type GpioPollService interface {
 
 type DefaultGpioPollService struct {
 	Cfg        *config.AppConfig
-	serialPort serial.Port
+	serialPort *serial.Port
 }
 
+var (
+	run bool = false
+)
+
 func NewGpioPollService(cfg *config.AppConfig) DefaultGpioPollService {
-	port := connectSerial(cfg.Gpio.SerialPort)
+	var port *serial.Port
+	if cfg.Gpio.SerialPort != "" {
+		port = connectSerial(cfg.Gpio.SerialPort)
+		if port != nil {
+			run = true
+		}
+	} else {
+		logger.Warn("No serial port configured, not polling")
+	}
 	return DefaultGpioPollService{
 		Cfg:        cfg,
-		serialPort: *port,
+		serialPort: port,
 	}
 }
 
@@ -42,18 +54,20 @@ func connectSerial(portName string) *serial.Port {
 }
 
 func (s DefaultGpioPollService) Poll() {
-	logger.Info(fmt.Sprintf("Starting to poll GPIOs on port %v", s.Cfg.Gpio.SerialPort))
-	for {
-		serialData := readFromSerial(s.serialPort)
-		stateHex := findHexVals(serialData)
-		if len(stateHex) > 1 {
-			stateBool := toBoolArray(stateHex[1])
-			if len(stateBool) == 8 {
-				setGpioState(s.Cfg, stateBool)
-				updateGpioMetrics(s.Cfg, stateBool)
+	if run == true {
+		logger.Info(fmt.Sprintf("Starting to poll GPIOs on port %v", s.Cfg.Gpio.SerialPort))
+		for {
+			serialData := readFromSerial(*s.serialPort)
+			stateHex := findHexVals(serialData)
+			if len(stateHex) > 1 {
+				stateBool := toBoolArray(stateHex[1])
+				if len(stateBool) == 8 {
+					setGpioState(s.Cfg, stateBool)
+					updateGpioMetrics(s.Cfg, stateBool)
+				}
 			}
+			time.Sleep(time.Duration(s.Cfg.Gpio.GpioPollIntervalSec) * time.Second)
 		}
-		time.Sleep(time.Duration(s.Cfg.Gpio.GpioPollIntervalSec) * time.Second)
 	}
 }
 
