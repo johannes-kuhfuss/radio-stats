@@ -1,0 +1,3 @@
+Make env file path configurable via cmd line arg
+Try re-creating connection to serial port if interrupted
+graceful shutdown for serial port
