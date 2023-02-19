@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"crypto/tls"
+	"flag"
 	"fmt"
 	"net/http"
 	"os"
@@ -35,6 +36,7 @@ var (
 
 func StartApp() {
 	logger.Info("Starting application")
+	getCmdLine()
 	err := config.InitConfig(config.EnvFile, &cfg)
 	if err != nil {
 		panic(err)
@@ -57,6 +59,11 @@ func StartApp() {
 	} else {
 		logger.Info("Graceful shutdown finished")
 	}
+}
+
+func getCmdLine() {
+	flag.StringVar(&config.EnvFile, "config.file", ".env", "Specify location of config file. Default is .env")
+	flag.Parse()
 }
 
 func initRouter() {

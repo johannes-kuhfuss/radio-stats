@@ -64,7 +64,7 @@ type AppConfig struct {
 	}
 }
 
-const (
+var (
 	EnvFile = ".env"
 )
 
