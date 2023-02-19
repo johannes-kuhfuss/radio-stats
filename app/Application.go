@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -65,7 +66,8 @@ func initRouter() {
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 	router.SetTrustedProxies(nil)
-	router.LoadHTMLGlob("./templates/*.tmpl")
+	globPath := filepath.Join(cfg.Gin.TemplatePath, "*.tmpl")
+	router.LoadHTMLGlob(globPath)
 
 	cfg.RunTime.Router = router
 }

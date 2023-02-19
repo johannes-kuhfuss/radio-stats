@@ -22,7 +22,8 @@ type AppConfig struct {
 		KeyFile              string `envconfig:"KEY_FILE" default:"./cert/cert.key"`
 	}
 	Gin struct {
-		Mode string `envconfig:"GIN_MODE" default:"release"`
+		Mode         string `envconfig:"GIN_MODE" default:"release"`
+		TemplatePath string `envconfig:"TEMPLATE_PATH" default:"./templates/"`
 	}
 	StreamScrape struct {
 		Url                string `envconfig:"STREAM_SCRAPE_URL"`
