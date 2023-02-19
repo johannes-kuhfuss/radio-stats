@@ -1,2 +1,3 @@
 Try re-creating connection to serial port if interrupted
-graceful shutdown for serial port
+Graceful shutdown for serial port
+Parse scrape Url and do not start scrape if no Url

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -69,7 +70,7 @@ var (
 )
 
 func InitConfig(file string, config *AppConfig) api_error.ApiErr {
-	logger.Info("Initalizing configuration")
+	logger.Info(fmt.Sprintf("Initalizing configuration from file %v", file))
 	loadConfig(file)
 	err := envconfig.Process("", config)
 	if err != nil {
