@@ -1,0 +1,46 @@
+# Server Configuration
+# Host name or IP to bind - defaults to all IPs
+##SERVER_HOST=""
+# Port to bind for http - defaults to "8080"
+##SERVER_PORT=""
+# Port to bind for https - defaults to "8443"
+##SERVER_TLS_PORT=""
+# Enable TLS (needs certificate and key, see below) - defaults to "false"
+##USE_TLS=""
+# Path to certificate file - defaults to "./cert/cert.pem"
+##CERT_FILE=""
+# Path to key file - defaults to "./cert/cert.key"
+##KEY_FILE=""
+# Time in seconds to wait for graceful shutdown - defaults to "10"
+##GRACEFUL_SHUTDOWN_TIME=""
+
+# Gin-Gonic Configuration
+# Gin-Gonic mode - defaults to "release" - Options: "Debug"
+##GIN_MODE=""
+# Path to page templates - defaults to "./templates/"
+TEMPLATE_PATH="/opt/radio-stats/templates/"
+
+# Icecast Server Scraping Configuration
+# Url to scrape from - no default *** must set ***
+STREAM_SCRAPE_URL="https://streaming.fueralle.org/status-json.xsl"
+# Scrape interval in seconds - defaults to "5"
+##STREAM_SCRAPE_INTERVAL_SEC=""
+# Number of streams to be expected. Issues a warning if more / less streams. Defaults to "5"
+##NUM_STREAMS_EXPECTED=""
+# Server name for the streams. Acts as a filter if streaming server handles more streams. Defaults to "coloRadio"
+## EXPECTED_SERVER_NAME=""
+
+# GPIO Configuration
+# Serial Port to connect to - no default *** must set ***
+GPIO_SERIAL_PORT="/dev/ttyACM0"
+# GPIO Poll Interval in seconds - defaults to "1"
+##GPIO_POLL_INTERVAL_SEC=""
+# GPIO Names used to report metrics - default to "IO 0x"
+##Gpio01Name=""
+##Gpio02Name=""
+##Gpio03Name=""
+##Gpio04Name=""
+##Gpio05Name=""
+##Gpio06Name=""
+##Gpio07Name=""
+##Gpio08Name=""

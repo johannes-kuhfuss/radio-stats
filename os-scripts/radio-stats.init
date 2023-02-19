@@ -1,0 +1,14 @@
+#!/sbin/openrc-run
+name="radio-stats"
+description="radio monitoring system for stream stats and studio status"
+supervisor=supervise-daemon
+command=/opt/radio-stats/radio-stats
+command_args="--config.file=$rstats_config_file"
+command_user="rstats:rstats"
+
+start_pre() {
+        [ -n "$output_log" ] && checkpath -f "$output_log" \
+                -m 644 -o rstats:rstats
+        [ -n "$error_log" ] && checkpath -f "$error_log" \
+                -m 644 -o rstats:rstats
+}
