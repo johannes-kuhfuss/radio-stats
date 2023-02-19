@@ -190,6 +190,10 @@ func cleanUp() {
 	ctx, cancel = context.WithTimeout(context.Background(), shutdownTime)
 	defer func() {
 		logger.Info("Cleaning up")
+		if cfg.RunTime.SerialPort != nil {
+			logger.Info("Closing serial port")
+			cfg.RunTime.SerialPort.Close()
+		}
 		logger.Info("Done cleaning up")
 		cancel()
 	}()

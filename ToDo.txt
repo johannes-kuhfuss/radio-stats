@@ -1,5 +1,3 @@
 Try re-creating connection to serial port if interrupted
-Graceful shutdown for serial port
-Parse scrape Url and do not start scrape if no Url
 Add to source control
 - script to add user, group, rights to access serial port (add to group dialout)

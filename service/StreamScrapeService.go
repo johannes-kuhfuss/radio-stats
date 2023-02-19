@@ -24,6 +24,7 @@ type DefaultStreamScrapeService struct {
 var (
 	httpTr     http.Transport
 	httpClient http.Client
+	runScrape  bool = false
 )
 
 func NewStreamScrapeService(cfg *config.AppConfig) DefaultStreamScrapeService {
@@ -44,9 +45,14 @@ func InitHttp() {
 }
 
 func (s DefaultStreamScrapeService) Scrape() {
-	logger.Info(fmt.Sprintf("Starting to scrape %v", s.Cfg.StreamScrape.Url))
+	if s.Cfg.StreamScrape.Url == "" {
+		logger.Warn("No scrape URL given. Not starting to scrape stream metrics")
+		runScrape = false
+	} else {
+		logger.Info(fmt.Sprintf("Starting to scrape %v", s.Cfg.StreamScrape.Url))
+	}
 
-	for {
+	for runScrape == true {
 		ScrapeRun(s)
 		time.Sleep(time.Duration(s.Cfg.StreamScrape.IntervalSec) * time.Second)
 	}

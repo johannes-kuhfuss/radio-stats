@@ -22,7 +22,7 @@ type DefaultGpioPollService struct {
 }
 
 var (
-	run bool = false
+	runPoll bool = false
 )
 
 func NewGpioPollService(cfg *config.AppConfig) DefaultGpioPollService {
@@ -30,7 +30,8 @@ func NewGpioPollService(cfg *config.AppConfig) DefaultGpioPollService {
 	if cfg.Gpio.SerialPort != "" {
 		port = connectSerial(cfg.Gpio.SerialPort)
 		if port != nil {
-			run = true
+			runPoll = true
+			cfg.RunTime.SerialPort = *port
 		}
 	} else {
 		logger.Warn("No serial port configured, not polling")
@@ -54,7 +55,7 @@ func connectSerial(portName string) *serial.Port {
 }
 
 func (s DefaultGpioPollService) Poll() {
-	if run == true {
+	if runPoll == true {
 		logger.Info(fmt.Sprintf("Starting to poll GPIOs on port %v", s.Cfg.Gpio.SerialPort))
 		for {
 			serialData := readFromSerial(*s.serialPort)

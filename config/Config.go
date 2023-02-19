@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.bug.st/serial"
 )
 
 type AppConfig struct {
@@ -54,6 +55,7 @@ type AppConfig struct {
 		ListenAddr        string
 		StartDate         time.Time
 		StreamScrapeCount uint64
+		SerialPort        serial.Port
 		Gpio01State       bool
 		Gpio02State       bool
 		Gpio03State       bool
