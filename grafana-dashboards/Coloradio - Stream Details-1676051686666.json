@@ -25,14 +25,14 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 4,
+  "id": 2,
   "links": [],
   "liveNow": false,
   "panels": [
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "nCrVBjhVk"
+        "uid": "RsY6af14k"
       },
       "fieldConfig": {
         "defaults": {
@@ -96,10 +96,10 @@
             "mode": "reduceRow",
             "reduce": {
               "include": [
-                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"192.168.181.20:8080\", job=\"coloradio\", streamName=\"AAC - 48kBit/s\"}",
-                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"192.168.181.20:8080\", job=\"coloradio\", streamName=\"MP3 - 160kBit/s\"}",
-                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"192.168.181.20:8080\", job=\"coloradio\", streamName=\"MP3 - 56kBit/s\"}",
-                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"192.168.181.20:8080\", job=\"coloradio\", streamName=\"Ogg - 160kBit/s\"}"
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"localhost:8080\", job=\"Coloradio Stats\", streamName=\"AAC - 48kBit/s\"}",
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"localhost:8080\", job=\"Coloradio Stats\", streamName=\"MP3 - 160kBit/s\"}",
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"localhost:8080\", job=\"Coloradio Stats\", streamName=\"MP3 - 56kBit/s\"}",
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"localhost:8080\", job=\"Coloradio Stats\", streamName=\"Ogg - 160kBit/s\"}"
               ],
               "reducer": "sum"
             },
@@ -112,7 +112,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "nCrVBjhVk"
+        "uid": "RsY6af14k"
       },
       "fieldConfig": {
         "defaults": {
@@ -205,10 +205,10 @@
             "mode": "reduceRow",
             "reduce": {
               "include": [
-                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"192.168.181.20:8080\", job=\"coloradio\", streamName=\"AAC - 48kBit/s\"}",
-                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"192.168.181.20:8080\", job=\"coloradio\", streamName=\"MP3 - 160kBit/s\"}",
-                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"192.168.181.20:8080\", job=\"coloradio\", streamName=\"MP3 - 56kBit/s\"}",
-                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"192.168.181.20:8080\", job=\"coloradio\", streamName=\"Ogg - 160kBit/s\"}"
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"localhost:8080\", job=\"Coloradio Stats\", streamName=\"AAC - 48kBit/s\"}",
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"localhost:8080\", job=\"Coloradio Stats\", streamName=\"MP3 - 160kBit/s\"}",
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"localhost:8080\", job=\"Coloradio Stats\", streamName=\"MP3 - 56kBit/s\"}",
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"localhost:8080\", job=\"Coloradio Stats\", streamName=\"Ogg - 160kBit/s\"}"
               ],
               "reducer": "sum"
             },
@@ -221,55 +221,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "nCrVBjhVk"
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 6,
-        "x": 16,
-        "y": 0
-      },
-      "id": 14,
-      "options": {
-        "bgColor": "",
-        "clockType": "24 hour",
-        "countdownSettings": {
-          "endCountdownTime": "2023-02-10T22:43:23+01:00",
-          "endText": "00:00:00"
-        },
-        "countupSettings": {
-          "beginCountupTime": "2023-02-10T22:43:23+01:00",
-          "beginText": "00:00:00"
-        },
-        "dateSettings": {
-          "dateFormat": "YYYY-MM-DD",
-          "fontSize": "30px",
-          "fontWeight": "normal",
-          "locale": "",
-          "showDate": true
-        },
-        "mode": "time",
-        "refresh": "sec",
-        "timeSettings": {
-          "fontSize": "100px",
-          "fontWeight": "normal"
-        },
-        "timezone": "Europe/Berlin",
-        "timezoneSettings": {
-          "fontSize": "12px",
-          "fontWeight": "normal",
-          "showTimezone": false,
-          "zoneFormat": "offsetAbbv"
-        }
-      },
-      "pluginVersion": "2.1.2",
-      "title": "Time",
-      "type": "grafana-clock-panel"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "nCrVBjhVk"
+        "uid": "RsY6af14k"
       },
       "fieldConfig": {
         "defaults": {
@@ -331,7 +283,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "nCrVBjhVk"
+        "uid": "RsY6af14k"
       },
       "fieldConfig": {
         "defaults": {
@@ -422,7 +374,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "nCrVBjhVk"
+        "uid": "RsY6af14k"
       },
       "fieldConfig": {
         "defaults": {
@@ -484,7 +436,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "nCrVBjhVk"
+        "uid": "RsY6af14k"
       },
       "fieldConfig": {
         "defaults": {
@@ -575,7 +527,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "nCrVBjhVk"
+        "uid": "RsY6af14k"
       },
       "fieldConfig": {
         "defaults": {
@@ -637,7 +589,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "nCrVBjhVk"
+        "uid": "RsY6af14k"
       },
       "fieldConfig": {
         "defaults": {
@@ -728,7 +680,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "nCrVBjhVk"
+        "uid": "RsY6af14k"
       },
       "fieldConfig": {
         "defaults": {
@@ -789,7 +741,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "nCrVBjhVk"
+        "uid": "RsY6af14k"
       },
       "fieldConfig": {
         "defaults": {
@@ -892,6 +844,6 @@
   "timezone": "",
   "title": "Coloradio - Stream Details",
   "uid": "I_ueP_AVk",
-  "version": 9,
+  "version": 5,
   "weekStart": ""
 }
