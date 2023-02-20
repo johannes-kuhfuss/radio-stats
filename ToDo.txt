@@ -1,3 +1,2 @@
-Try re-creating connection to serial port if interrupted
 Add to source control
 - script to add user, group, rights to access serial port (add to group dialout)

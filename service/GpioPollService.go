@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"regexp"
 	"time"
@@ -58,7 +59,20 @@ func (s DefaultGpioPollService) Poll() {
 	if runPoll == true {
 		logger.Info(fmt.Sprintf("Starting to poll GPIOs on port %v", s.Cfg.Gpio.SerialPort))
 		for {
-			serialData := readFromSerial(*s.serialPort)
+			serialData, err := readFromSerial(*s.serialPort)
+			if err != nil {
+				s.Cfg.RunTime.SerialPort.Close()
+				time.Sleep(5 * time.Second)
+				port := connectSerial(s.Cfg.Gpio.SerialPort)
+				if port != nil {
+					s.serialPort = port
+					s.Cfg.RunTime.SerialPort = *port
+					logger.Info("Serial port reconnected")
+				} else {
+					logger.Warn("Could not reconnect serial port")
+					time.Sleep(5 * time.Second)
+				}
+			}
 			stateHex := findHexVals(serialData)
 			if len(stateHex) > 1 {
 				stateBool := toBoolArray(stateHex[1])
@@ -72,20 +86,23 @@ func (s DefaultGpioPollService) Poll() {
 	}
 }
 
-func readFromSerial(port serial.Port) string {
+func readFromSerial(port serial.Port) (string, error) {
 	buff := make([]byte, 100)
 	_, err := port.Write([]byte("gpio readall\n\r"))
 	if err != nil {
 		logger.Error("Error writing to serial port: ", err)
+		return "", err
 	}
 	n, err := port.Read(buff)
 	if err != nil {
 		logger.Error("Error reading from serial port: ", err)
+		return "", err
 	}
 	if n == 0 {
 		logger.Info("Serial is EOF")
+		return "", errors.New("Serial is EOF")
 	}
-	return string(buff[:n])
+	return string(buff[:n]), nil
 }
 
 func findHexVals(serialData string) []byte {
