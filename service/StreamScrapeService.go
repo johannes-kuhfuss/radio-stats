@@ -50,6 +50,7 @@ func (s DefaultStreamScrapeService) Scrape() {
 		runScrape = false
 	} else {
 		logger.Info(fmt.Sprintf("Starting to scrape %v", s.Cfg.StreamScrape.Url))
+		runScrape = true
 	}
 
 	for runScrape == true {
