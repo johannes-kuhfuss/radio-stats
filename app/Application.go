@@ -32,6 +32,7 @@ var (
 	statsUiHandler      handlers.StatsUiHandler
 	streamScrapeService service.DefaultStreamScrapeService
 	gpioPollService     service.DefaultGpioPollService
+	streamDetectService service.StreamVolDetectService
 )
 
 func StartApp() {
@@ -139,15 +140,23 @@ func initMetrics() {
 	}, []string{
 		"gpioName",
 	})
+	cfg.Metrics.StreamVolDetectCount = prometheus.NewCounter(prometheus.CounterOpts{
+		Namespace: "Coloradio",
+		Subsystem: "Streams",
+		Name:      "volume_detection_count",
+		Help:      "Number of times volume level was detected on stream",
+	})
 	prometheus.MustRegister(cfg.Metrics.StreamListenerGauge)
 	prometheus.MustRegister(cfg.Metrics.StreamScrapeCount)
 	prometheus.MustRegister(cfg.Metrics.GpioStateGauge)
+	prometheus.MustRegister(cfg.Metrics.StreamVolDetectCount)
 }
 
 func wireApp() {
 	statsUiHandler = handlers.NewStatsUiHandler(&cfg)
 	streamScrapeService = service.NewStreamScrapeService(&cfg)
 	gpioPollService = service.NewGpioPollService(&cfg)
+	streamDetectService = service.NewStreamVolDetectService(&cfg)
 }
 
 func mapUrls() {
@@ -183,6 +192,10 @@ func startStreamScraping() {
 
 func startGpioPolling() {
 	gpioPollService.Poll()
+}
+
+func startStreamVolumeDetect() {
+	streamDetectService.Listen()
 }
 
 func cleanUp() {

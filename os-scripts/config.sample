@@ -30,6 +30,16 @@ STREAM_SCRAPE_URL="https://streaming.fueralle.org/status-json.xsl"
 # Server name for the streams. Acts as a filter if streaming server handles more streams. Defaults to "coloRadio"
 ## EXPECTED_SERVER_NAME=""
 
+# Stream Volume Detect Configuration
+# Url of stream to listen to - no default *** must set ***
+STREAM_VOLDETECT_URL="https://streaming.fueralle.org/coloradio_160.mp3"
+# Volume Detection Interval in seconds - defaults to "10"
+##STREAM_VOLDETECT_INTERVAL_SEC=""
+# Volume Detection Listening Duration - defaults to "5"
+##STREAM_VOLDETECT_DURATION=""
+# Path to ffmpeg - defaults to "./prog/ffmpeg.exe"
+##STREAM_VOLDETECT_FFMPEG=""
+
 # GPIO Configuration
 # Serial Port to connect to - no default *** must set ***
 GPIO_SERIAL_PORT="/dev/ttyACM0"

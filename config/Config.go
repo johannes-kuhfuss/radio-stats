@@ -33,6 +33,12 @@ type AppConfig struct {
 		NumExpected        int    `envconfig:"NUM_STREAMS_EXPECTED" default:"5"`
 		ExpectedServerName string `envconfig:"EXPECTED_SERVER_NAME" default:"coloRadio"`
 	}
+	StreamVolDetect struct {
+		Url         string `envconfig:"STREAM_VOLDETECT_URL"`
+		IntervalSec int    `envconfig:"STREAM_VOLDETECT_INTERVAL_SEC" default:"10"`
+		Duration    int    `envconfig:"STREAM_VOLDETECT_DURATION" default:"5"`
+		FfmpegExe   string `envconfig:"STREAM_VOLDETECT_FFMPEG" default:"./prog/ffmpeg.exe"`
+	}
 	Gpio struct {
 		SerialPort          string `envconfig:"GPIO_SERIAL_PORT"`
 		GpioPollIntervalSec int    `envconfig:"GPIO_POLL_INTERVAL_SEC" default:"1"`
@@ -46,24 +52,26 @@ type AppConfig struct {
 		Gpio08Name          string `envconfig:"GPIO_08_NAME" default:"IO 08"`
 	}
 	Metrics struct {
-		StreamListenerGauge prometheus.GaugeVec
-		StreamScrapeCount   prometheus.Counter
-		GpioStateGauge      prometheus.GaugeVec
+		StreamListenerGauge  prometheus.GaugeVec
+		StreamScrapeCount    prometheus.Counter
+		GpioStateGauge       prometheus.GaugeVec
+		StreamVolDetectCount prometheus.Counter
 	}
 	RunTime struct {
-		Router            *gin.Engine
-		ListenAddr        string
-		StartDate         time.Time
-		StreamScrapeCount uint64
-		SerialPort        serial.Port
-		Gpio01State       bool
-		Gpio02State       bool
-		Gpio03State       bool
-		Gpio04State       bool
-		Gpio05State       bool
-		Gpio06State       bool
-		Gpio07State       bool
-		Gpio08State       bool
+		Router               *gin.Engine
+		ListenAddr           string
+		StartDate            time.Time
+		StreamScrapeCount    uint64
+		SerialPort           serial.Port
+		Gpio01State          bool
+		Gpio02State          bool
+		Gpio03State          bool
+		Gpio04State          bool
+		Gpio05State          bool
+		Gpio06State          bool
+		Gpio07State          bool
+		Gpio08State          bool
+		StreamVolDetectCount uint64
 	}
 }
 
