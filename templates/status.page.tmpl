@@ -29,6 +29,33 @@
                         </tr>
                         </tbody>
                 </table>
+                <h2>Stream Volume Detecion</h2>
+                <table class="table table-striped table-sm">
+                    <thead>
+                        <tr>
+                        <th scope="col" style="width: 50%">Variable</th>
+                        <th scope="col" style="width: 50%">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Stream Volume Detection URL</td>
+                            <td>{{ .configdata.StreamVolDetectionUrl }}</td>
+                        </tr>
+                        <tr>
+                            <td>Stream Volume Detection Interval (sec)</td>
+                            <td>{{ .configdata.StreamVolDetectionIntervalSec }}</td>
+                        </tr>
+                        <tr>
+                            <td>Stream Volume Detection Duration (sec)</td>
+                            <td>{{ .configdata.StreamVolDetectionDuration }}</td>
+                        </tr>
+                        <tr>
+                            <td>Stream Volume Detection Count Since Start</td>
+                            <td>{{ .configdata.StreamVolDetectionCount }}</td>
+                        </tr>
+                        </tbody>
+                </table>
                 <h2>GPIOs</h2>
                 <table class="table table-striped table-sm">
                     <thead>

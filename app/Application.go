@@ -51,6 +51,7 @@ func StartApp() {
 	go startServer()
 	go startStreamScraping()
 	go startGpioPolling()
+	go startStreamVolumeDetect()
 
 	<-appEnd
 	cleanUp()
