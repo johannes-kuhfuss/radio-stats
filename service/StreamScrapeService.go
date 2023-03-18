@@ -46,7 +46,7 @@ func InitHttp() {
 
 func (s DefaultStreamScrapeService) Scrape() {
 	if s.Cfg.StreamScrape.Url == "" {
-		logger.Warn("No scrape URL given. Not starting to scrape stream metrics")
+		logger.Warn("No scrape URL given. Not scraping stream metrics")
 		runScrape = false
 	} else {
 		logger.Info(fmt.Sprintf("Starting to scrape %v", s.Cfg.StreamScrape.Url))
