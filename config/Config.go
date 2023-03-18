@@ -35,8 +35,8 @@ type AppConfig struct {
 	}
 	StreamVolDetect struct {
 		Url         string `envconfig:"STREAM_VOLDETECT_URL"`
-		IntervalSec int    `envconfig:"STREAM_VOLDETECT_INTERVAL_SEC" default:"10"`
-		Duration    int    `envconfig:"STREAM_VOLDETECT_DURATION" default:"5"`
+		IntervalSec int    `envconfig:"STREAM_VOLDETECT_INTERVAL_SEC" default:"5"`
+		Duration    int    `envconfig:"STREAM_VOLDETECT_DURATION" default:"2"`
 		FfmpegExe   string `envconfig:"STREAM_VOLDETECT_FFMPEG" default:"./prog/ffmpeg.exe"`
 	}
 	Gpio struct {
