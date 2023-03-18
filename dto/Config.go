@@ -41,6 +41,7 @@ type ConfigResp struct {
 	StreamVolDetectionIntervalSec string
 	StreamVolDetectionDuration    string
 	StreamVolDetectionCount       string
+	StreamVolume                  string
 }
 
 func boolToStringState(state bool) string {
@@ -87,6 +88,7 @@ func GetConfig(cfg *config.AppConfig) ConfigResp {
 		StreamVolDetectionIntervalSec: strconv.Itoa(cfg.StreamVolDetect.IntervalSec),
 		StreamVolDetectionDuration:    strconv.Itoa(cfg.StreamVolDetect.Duration),
 		StreamVolDetectionCount:       strconv.FormatUint(cfg.RunTime.StreamVolDetectCount, 10),
+		StreamVolume:                  strconv.FormatFloat(cfg.RunTime.StreamVolume, 'f', -1, 64),
 	}
 	if cfg.Server.Host == "" {
 		resp.ServerHost = "localhost"

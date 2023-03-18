@@ -147,7 +147,7 @@ func initMetrics() {
 		Name:      "volume_detection_count",
 		Help:      "Number of times volume level was detected on stream",
 	})
-	cfg.Metrics.GpioStateGauge = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	cfg.Metrics.StreamVolume = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "Coloradio",
 		Subsystem: "Streams",
 		Name:      "volume",

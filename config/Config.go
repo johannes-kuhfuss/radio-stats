@@ -73,6 +73,7 @@ type AppConfig struct {
 		Gpio07State          bool
 		Gpio08State          bool
 		StreamVolDetectCount uint64
+		StreamVolume         float64
 	}
 }
 
