@@ -62,7 +62,7 @@ func ListenRun(s DefaultStreamVolDetectService) {
 			for _, num := range allNums {
 				f, err := strconv.ParseFloat(num, 64)
 				if err == nil {
-					logger.Info(fmt.Sprintf("Volume: %v", f))
+					s.Cfg.Metrics.StreamVolume.WithLabelValues(s.Cfg.StreamVolDetect.Url).Set(f)
 				}
 			}
 		}
