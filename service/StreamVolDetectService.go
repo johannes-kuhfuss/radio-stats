@@ -48,13 +48,13 @@ func (s DefaultStreamVolDetectService) Listen() {
 func ListenRun(s DefaultStreamVolDetectService) {
 	s.Cfg.RunTime.StreamVolDetectCount++
 	s.Cfg.Metrics.StreamVolDetectCount.Inc()
-	cmd := exec.Command(s.Cfg.StreamVolDetect.FfmpegExe, "-t", strconv.Itoa(s.Cfg.StreamVolDetect.Duration), "-i", s.Cfg.StreamVolDetect.Url, "-af", "volumedetect", "-f", "null", "/dev/null")
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		logger.Error("Could not execute ffmpeg: ", err)
-		return
+	lines := runFfmpeg(s)
+	if lines != nil {
+		updateMetrics(lines, s)
 	}
-	lines := strings.Split(string(out), "\n")
+}
+
+func updateMetrics(lines []string, s DefaultStreamVolDetectService) {
 	for _, line := range lines {
 		if strings.Contains(line, "mean_volume") {
 			re := regexp.MustCompile(`[-]\d*[\.]\d`)
@@ -68,4 +68,15 @@ func ListenRun(s DefaultStreamVolDetectService) {
 			}
 		}
 	}
+}
+
+func runFfmpeg(s DefaultStreamVolDetectService) []string {
+	cmd := exec.Command(s.Cfg.StreamVolDetect.FfmpegExe, "-t", strconv.Itoa(s.Cfg.StreamVolDetect.Duration), "-i", s.Cfg.StreamVolDetect.Url, "-af", "volumedetect", "-f", "null", "/dev/null")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		logger.Error("Could not execute ffmpeg: ", err)
+		return nil
+	}
+	lines := strings.Split(string(out), "\n")
+	return lines
 }
