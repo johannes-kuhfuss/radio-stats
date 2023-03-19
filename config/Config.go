@@ -74,6 +74,8 @@ type AppConfig struct {
 		Gpio08State          bool
 		StreamVolDetectCount uint64
 		StreamVolume         float64
+		RunScrape            bool
+		RunListen            bool
 	}
 }
 
@@ -97,6 +99,8 @@ func InitConfig(file string, config *AppConfig) api_error.ApiErr {
 	config.RunTime.Gpio06State = false
 	config.RunTime.Gpio07State = false
 	config.RunTime.Gpio08State = false
+	config.RunTime.RunScrape = false
+	config.RunTime.RunListen = false
 	logger.Info("Done initalizing configuration")
 	return nil
 }

@@ -20,10 +20,6 @@ type DefaultStreamVolDetectService struct {
 	Cfg *config.AppConfig
 }
 
-var (
-	runListen bool = false
-)
-
 func NewStreamVolDetectService(cfg *config.AppConfig) DefaultStreamVolDetectService {
 	return DefaultStreamVolDetectService{
 		Cfg: cfg,
@@ -33,13 +29,13 @@ func NewStreamVolDetectService(cfg *config.AppConfig) DefaultStreamVolDetectServ
 func (s DefaultStreamVolDetectService) Listen() {
 	if s.Cfg.StreamVolDetect.Url == "" {
 		logger.Warn("No volume detection URL given. Not starting volume detection")
-		runListen = false
+		s.Cfg.RunTime.RunListen = false
 	} else {
 		logger.Info(fmt.Sprintf("Starting to detect volume on %v", s.Cfg.StreamVolDetect.Url))
-		runListen = true
+		s.Cfg.RunTime.RunListen = true
 	}
 
-	for runListen == true {
+	for s.Cfg.RunTime.RunListen == true {
 		ListenRun(s)
 		time.Sleep(time.Duration(s.Cfg.StreamVolDetect.IntervalSec) * time.Second)
 	}

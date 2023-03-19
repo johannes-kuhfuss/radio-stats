@@ -18,4 +18,17 @@ func Test_GetConfig_Returns_NoError(t *testing.T) {
 	assert.NotNil(t, resp)
 
 	assert.EqualValues(t, "release", resp.GinMode)
+	assert.EqualValues(t, "localhost", resp.ServerHost)
+}
+
+func Test_boolToStringState_True(t *testing.T) {
+	res := boolToStringState(true)
+	assert.EqualValues(t, "Active", res)
+
+}
+
+func Test_boolToStringState_False(t *testing.T) {
+	res := boolToStringState(false)
+	assert.EqualValues(t, "Inactive", res)
+
 }

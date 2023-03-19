@@ -37,6 +37,7 @@ var (
 
 func StartApp() {
 	logger.Info("Starting application")
+
 	getCmdLine()
 	err := config.InitConfig(config.EnvFile, &cfg)
 	if err != nil {
@@ -48,6 +49,7 @@ func StartApp() {
 	wireApp()
 	mapUrls()
 	RegisterForOsSignals()
+
 	go startServer()
 	go startStreamScraping()
 	go startGpioPolling()
@@ -210,6 +212,8 @@ func startStreamVolumeDetect() {
 
 func cleanUp() {
 	shutdownTime := time.Duration(cfg.Server.GracefulShutdownTime) * time.Second
+	cfg.RunTime.RunListen = false
+	cfg.RunTime.RunScrape = false
 	ctx, cancel = context.WithTimeout(context.Background(), shutdownTime)
 	defer func() {
 		logger.Info("Cleaning up")
