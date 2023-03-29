@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/goccy/go-json v0.10.2
-	github.com/johannes-kuhfuss/services_utils v1.0.12
+	github.com/johannes-kuhfuss/services_utils v1.0.13
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/stretchr/testify v1.8.2
