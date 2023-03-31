@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"regexp"
@@ -67,12 +68,17 @@ func updateMetrics(lines []string, s DefaultStreamVolDetectService) {
 }
 
 func runFfmpeg(s DefaultStreamVolDetectService) []string {
-	cmd := exec.Command(s.Cfg.StreamVolDetect.FfmpegExe, "-t", strconv.Itoa(s.Cfg.StreamVolDetect.Duration), "-i", s.Cfg.StreamVolDetect.Url, "-af", "volumedetect", "-f", "null", "/dev/null")
+	ctx := context.Background()
+	timeout := time.Duration(s.Cfg.StreamVolDetect.Duration+5) * time.Second
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	cmd := exec.CommandContext(ctx, s.Cfg.StreamVolDetect.FfmpegExe, "-t", strconv.Itoa(s.Cfg.StreamVolDetect.Duration), "-i", s.Cfg.StreamVolDetect.Url, "-af", "volumedetect", "-f", "null", "/dev/null")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
+		cancel()
 		logger.Error("Could not execute ffmpeg: ", err)
 		return nil
 	}
+	cancel()
 	lines := strings.Split(string(out), "\n")
 	return lines
 }
