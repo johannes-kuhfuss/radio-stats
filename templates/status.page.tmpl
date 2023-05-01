@@ -70,46 +70,20 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Serial Port</td>
-                            <td>{{ .configdata.GpioSerial }}</td>
+                            <td>Url</td>
+                            <td>{{ .configdata.GpioUrl }}</td>
                         </tr>
                         <tr>
                             <td>GPIO Polling Interval (sec)</td>
                             <td>{{ .configdata.GpioPollIntervalSec }}</td>
                         </tr>
+                        {{ range .configdata.GpioPins }}
                         <tr>
-                            <td>GPIO 01 - {{ .configdata.Gpio01Name }}</td>
-                            <td>{{ .configdata.Gpio01State }}</td>
+                          <td> {{ .Name }} ({{ .Id }}) </td>
+                          <td> {{ .State }} </td>
                         </tr>
-                        <tr>
-                            <td>GPIO 02 - {{ .configdata.Gpio02Name }}</td>
-                            <td>{{ .configdata.Gpio02State }}</td>
-                        </tr>
-                        <tr>
-                            <td>GPIO 03 - {{ .configdata.Gpio03Name }}</td>
-                            <td>{{ .configdata.Gpio03State }}</td>
-                        </tr>
-                        <tr>
-                            <td>GPIO 04 - {{ .configdata.Gpio04Name }}</td>
-                            <td>{{ .configdata.Gpio04State }}</td>
-                        </tr>
-                        <tr>
-                            <td>GPIO 05 - {{ .configdata.Gpio05Name }}</td>
-                            <td>{{ .configdata.Gpio05State }}</td>
-                        </tr>
-                        <tr>
-                            <td>GPIO 06 - {{ .configdata.Gpio06Name }}</td>
-                            <td>{{ .configdata.Gpio06State }}</td>
-                        </tr>
-                        <tr>
-                            <td>GPIO 07 - {{ .configdata.Gpio07Name }}</td>
-                            <td>{{ .configdata.Gpio07State }}</td>
-                        </tr>
-                        <tr>
-                            <td>GPIO 08 - {{ .configdata.Gpio08Name }}</td>
-                            <td>{{ .configdata.Gpio08State }}</td>
-                        </tr>
-                        </tbody>
+                        {{ end }}
+                    </tbody>
                 </table>
                 <h2>Server</h2>
                 <table class="table table-striped table-sm">

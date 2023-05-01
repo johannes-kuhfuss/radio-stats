@@ -22,25 +22,25 @@ type DefaultStreamScrapeService struct {
 }
 
 var (
-	httpTr     http.Transport
-	httpClient http.Client
+	httpStreamTr     http.Transport
+	httpStreamClient http.Client
 )
 
 func NewStreamScrapeService(cfg *config.AppConfig) DefaultStreamScrapeService {
-	InitHttp()
+	InitStreamHttp()
 	return DefaultStreamScrapeService{
 		Cfg: cfg,
 	}
 }
 
-func InitHttp() {
-	httpTr = http.Transport{
+func InitStreamHttp() {
+	httpStreamTr = http.Transport{
 		DisableKeepAlives:  false,
 		DisableCompression: false,
 		MaxIdleConns:       0,
 		IdleConnTimeout:    0,
 	}
-	httpClient = http.Client{Transport: &httpTr}
+	httpStreamClient = http.Client{Transport: &httpStreamTr}
 }
 
 func (s DefaultStreamScrapeService) Scrape() {
@@ -76,7 +76,7 @@ func ScrapeRun(s DefaultStreamScrapeService) {
 }
 
 func GetDataFromUrl(Url string) ([]byte, error) {
-	resp, err := httpClient.Get(Url)
+	resp, err := httpStreamClient.Get(Url)
 	if err != nil {
 		logger.Error("Error while scraping", err)
 		return nil, err

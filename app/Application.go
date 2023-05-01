@@ -139,7 +139,7 @@ func initMetrics() {
 		Namespace: "Coloradio",
 		Subsystem: "GPIOs",
 		Name:      "status",
-		Help:      "Status of GPIO - 1 = active, 0 = inactive",
+		Help:      "Status of GPIO 1 or 0",
 	}, []string{
 		"gpioName",
 	})
@@ -217,10 +217,6 @@ func cleanUp() {
 	ctx, cancel = context.WithTimeout(context.Background(), shutdownTime)
 	defer func() {
 		logger.Info("Cleaning up")
-		if cfg.RunTime.SerialPort != nil {
-			logger.Info("Closing serial port")
-			cfg.RunTime.SerialPort.Close()
-		}
 		logger.Info("Done cleaning up")
 		cancel()
 	}()

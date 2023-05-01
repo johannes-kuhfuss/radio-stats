@@ -1,16 +1,12 @@
 package service
 
 import (
-	"encoding/hex"
-	"errors"
 	"fmt"
-	"regexp"
+	"net/http"
 	"time"
 
 	"github.com/johannes-kuhfuss/radio-stats/config"
 	"github.com/johannes-kuhfuss/services_utils/logger"
-
-	"go.bug.st/serial"
 )
 
 type GpioPollService interface {
@@ -18,118 +14,48 @@ type GpioPollService interface {
 }
 
 type DefaultGpioPollService struct {
-	Cfg        *config.AppConfig
-	serialPort *serial.Port
+	Cfg *config.AppConfig
 }
 
 var (
-	runPoll bool = false
+	runPoll        bool = false
+	httpGpioTr     http.Transport
+	httpGpioClient http.Client
 )
 
 func NewGpioPollService(cfg *config.AppConfig) DefaultGpioPollService {
-	var port *serial.Port
-	if cfg.Gpio.SerialPort != "" {
-		port = connectSerial(cfg.Gpio.SerialPort)
-		if port != nil {
-			runPoll = true
-			cfg.RunTime.SerialPort = *port
-		}
-	} else {
-		logger.Warn("No serial port configured, not polling")
-	}
+	InitGpioHttp()
 	return DefaultGpioPollService{
-		Cfg:        cfg,
-		serialPort: port,
+		Cfg: cfg,
 	}
 }
 
-func connectSerial(portName string) *serial.Port {
-	mode := &serial.Mode{
-		BaudRate: 19200,
+func InitGpioHttp() {
+	httpGpioTr = http.Transport{
+		DisableKeepAlives:  false,
+		DisableCompression: false,
+		MaxIdleConns:       0,
+		IdleConnTimeout:    0,
 	}
-	port, err := serial.Open(portName, mode)
-	if err != nil {
-		logger.Error("Could not open serial port: ", err)
-		return nil
-	}
-	return &port
+	httpGpioClient = http.Client{Transport: &httpStreamTr}
 }
 
 func (s DefaultGpioPollService) Poll() {
-	if runPoll == true {
-		logger.Info(fmt.Sprintf("Starting to poll GPIOs on port %v", s.Cfg.Gpio.SerialPort))
-		for {
-			serialData, err := readFromSerial(*s.serialPort)
-			if err != nil {
-				s.Cfg.RunTime.SerialPort.Close()
-				time.Sleep(5 * time.Second)
-				port := connectSerial(s.Cfg.Gpio.SerialPort)
-				if port != nil {
-					s.serialPort = port
-					s.Cfg.RunTime.SerialPort = *port
-					logger.Info("Serial port reconnected")
-				} else {
-					logger.Warn("Could not reconnect serial port")
-					time.Sleep(5 * time.Second)
-				}
-			}
-			stateHex := findHexVals(serialData)
-			if len(stateHex) > 1 {
-				stateBool := toBoolArray(stateHex[1])
-				if len(stateBool) == 8 {
-					setGpioState(s.Cfg, stateBool)
-					updateGpioMetrics(s.Cfg, stateBool)
-				}
-			}
-			time.Sleep(time.Duration(s.Cfg.Gpio.GpioPollIntervalSec) * time.Second)
-		}
+	if s.Cfg.Gpio.Url == "" {
+		logger.Warn("No GPIO poll URL given. Not polling GPIOs")
+		s.Cfg.RunTime.RunPoll = false
+	} else {
+		logger.Info(fmt.Sprintf("Starting to poll GPIOs from %v", s.Cfg.Gpio.Url))
+		s.Cfg.RunTime.RunPoll = true
+	}
+
+	for s.Cfg.RunTime.RunPoll == true {
+		//PollRun(s)
+		time.Sleep(time.Duration(s.Cfg.Gpio.IntervalSec) * time.Second)
 	}
 }
 
-func readFromSerial(port serial.Port) (string, error) {
-	buff := make([]byte, 100)
-	_, err := port.Write([]byte("gpio readall\n\r"))
-	if err != nil {
-		logger.Error("Error writing to serial port: ", err)
-		return "", err
-	}
-	n, err := port.Read(buff)
-	if err != nil {
-		logger.Error("Error reading from serial port: ", err)
-		return "", err
-	}
-	if n == 0 {
-		logger.Info("Serial is EOF")
-		return "", errors.New("Serial is EOF")
-	}
-	return string(buff[:n]), nil
-}
-
-func findHexVals(serialData string) []byte {
-	var stateHex []byte
-	regEx, err := regexp.Compile("[A-F0-9]{4}")
-	if err != nil {
-		logger.Error("Error while compiling regex: ", err)
-	}
-	stateString := regEx.FindStringSubmatch(serialData)
-	if len(stateString) > 0 {
-		stateHex, err = hex.DecodeString(stateString[0])
-		if err != nil {
-			logger.Error("Error when converting to hexadecimal: ", err)
-		}
-	}
-	return stateHex
-}
-
-func toBoolArray(number byte) []bool {
-	result := []bool{}
-	for number > 0 {
-		result = append([]bool{number%2 == 1}, result...)
-		number >>= 1
-	}
-	return result
-}
-
+/*
 func setGpioState(cfg *config.AppConfig, stateBool []bool) {
 	cfg.RunTime.Gpio01State = !stateBool[7]
 	cfg.RunTime.Gpio02State = !stateBool[6]
@@ -159,3 +85,4 @@ func boolToInt(state bool) int {
 		return 0
 	}
 }
+*/

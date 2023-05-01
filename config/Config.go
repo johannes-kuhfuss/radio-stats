@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -10,8 +11,13 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/prometheus/client_golang/prometheus"
-	"go.bug.st/serial"
 )
+
+type PinData struct {
+	Id    int
+	Name  string
+	State bool
+}
 
 type AppConfig struct {
 	Server struct {
@@ -40,16 +46,9 @@ type AppConfig struct {
 		FfmpegExe   string `envconfig:"STREAM_VOLDETECT_FFMPEG" default:"./prog/ffmpeg.exe"`
 	}
 	Gpio struct {
-		SerialPort          string `envconfig:"GPIO_SERIAL_PORT"`
-		GpioPollIntervalSec int    `envconfig:"GPIO_POLL_INTERVAL_SEC" default:"1"`
-		Gpio01Name          string `envconfig:"GPIO_01_NAME" default:"IO 01"`
-		Gpio02Name          string `envconfig:"GPIO_02_NAME" default:"IO 02"`
-		Gpio03Name          string `envconfig:"GPIO_03_NAME" default:"IO 03"`
-		Gpio04Name          string `envconfig:"GPIO_04_NAME" default:"IO 04"`
-		Gpio05Name          string `envconfig:"GPIO_05_NAME" default:"IO 05"`
-		Gpio06Name          string `envconfig:"GPIO_06_NAME" default:"IO 06"`
-		Gpio07Name          string `envconfig:"GPIO_07_NAME" default:"IO 07"`
-		Gpio08Name          string `envconfig:"GPIO_08_NAME" default:"IO 08"`
+		Url         string         `envconfig:"GPIO_URL"`
+		IntervalSec int            `envconfig:"GPIO_POLL_INTERVAL_SEC" default:"1"`
+		Names       map[int]string `envconfig:"GPIO_NAMES"`
 	}
 	Metrics struct {
 		StreamListenerGauge  prometheus.GaugeVec
@@ -63,19 +62,12 @@ type AppConfig struct {
 		ListenAddr           string
 		StartDate            time.Time
 		StreamScrapeCount    uint64
-		SerialPort           serial.Port
-		Gpio01State          bool
-		Gpio02State          bool
-		Gpio03State          bool
-		Gpio04State          bool
-		Gpio05State          bool
-		Gpio06State          bool
-		Gpio07State          bool
-		Gpio08State          bool
 		StreamVolDetectCount uint64
 		StreamVolume         float64
 		RunScrape            bool
+		RunPoll              bool
 		RunListen            bool
+		Gpios                []PinData
 	}
 }
 
@@ -90,15 +82,18 @@ func InitConfig(file string, config *AppConfig) api_error.ApiErr {
 	if err != nil {
 		return api_error.NewInternalServerError("Could not initalize configuration. Check your environment variables", err)
 	}
+	for key, val := range config.Gpio.Names {
+		var gpio PinData
+		gpio.Id = key
+		gpio.Name = val
+		gpio.State = false
+		config.RunTime.Gpios = append(config.RunTime.Gpios, gpio)
+	}
+	sort.SliceStable(config.RunTime.Gpios, func(i, j int) bool {
+		return config.RunTime.Gpios[i].Id < config.RunTime.Gpios[j].Id
+	})
+
 	config.RunTime.StreamScrapeCount = 0
-	config.RunTime.Gpio01State = false
-	config.RunTime.Gpio02State = false
-	config.RunTime.Gpio03State = false
-	config.RunTime.Gpio04State = false
-	config.RunTime.Gpio05State = false
-	config.RunTime.Gpio06State = false
-	config.RunTime.Gpio07State = false
-	config.RunTime.Gpio08State = false
 	config.RunTime.RunScrape = false
 	config.RunTime.RunListen = false
 	logger.Info("Done initalizing configuration")
