@@ -19,7 +19,7 @@ type ConfigResp struct {
 	StreamScrapeUrl            string
 	StreamScrapeIntervalSec    string
 	StreamScrapeCount          string
-	GpioUrl                    string
+	GpioHost                   string
 	GpioPollIntervalSec        string
 	GpioPins                   []struct {
 		Id    string
@@ -55,7 +55,7 @@ func GetConfig(cfg *config.AppConfig) ConfigResp {
 		StreamScrapeUrl:               cfg.StreamScrape.Url,
 		StreamScrapeIntervalSec:       strconv.Itoa(cfg.StreamScrape.IntervalSec),
 		StreamScrapeCount:             strconv.FormatUint(cfg.RunTime.StreamScrapeCount, 10),
-		GpioUrl:                       cfg.Gpio.Url,
+		GpioHost:                      cfg.Gpio.Host,
 		GpioPollIntervalSec:           strconv.Itoa(cfg.Gpio.IntervalSec),
 		StreamVolDetectionUrl:         cfg.StreamVolDetect.Url,
 		StreamVolDetectionIntervalSec: strconv.Itoa(cfg.StreamVolDetect.IntervalSec),

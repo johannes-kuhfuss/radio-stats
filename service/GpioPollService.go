@@ -1,8 +1,11 @@
 package service
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/johannes-kuhfuss/radio-stats/config"
@@ -21,10 +24,12 @@ var (
 	runPoll        bool = false
 	httpGpioTr     http.Transport
 	httpGpioClient http.Client
+	cookie         *http.Cookie
 )
 
 func NewGpioPollService(cfg *config.AppConfig) DefaultGpioPollService {
 	InitGpioHttp()
+	LoginToGpio(cfg)
 	return DefaultGpioPollService{
 		Cfg: cfg,
 	}
@@ -37,22 +42,71 @@ func InitGpioHttp() {
 		MaxIdleConns:       0,
 		IdleConnTimeout:    0,
 	}
-	httpGpioClient = http.Client{Transport: &httpStreamTr}
+	httpGpioClient = http.Client{Transport: &httpGpioTr}
+}
+
+func LoginToGpio(cfg *config.AppConfig) {
+	loginString := fmt.Sprintf("u=%s&p=%s", cfg.Gpio.User, cfg.Gpio.Password)
+	bodyReader := bytes.NewBuffer([]byte(loginString))
+	loginUrl := url.URL{
+		Scheme: "http",
+		Host:   cfg.Gpio.Host,
+		Path:   "/login.html",
+	}
+	req, _ := http.NewRequest("POST", loginUrl.String(), bodyReader)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := httpGpioClient.Do(req)
+	if err != nil {
+		logger.Error("Error while logging in to GPIO host", err)
+	} else {
+		cookie = resp.Cookies()[0]
+	}
 }
 
 func (s DefaultGpioPollService) Poll() {
-	if s.Cfg.Gpio.Url == "" {
-		logger.Warn("No GPIO poll URL given. Not polling GPIOs")
+	if s.Cfg.Gpio.Host == "" {
+		logger.Warn("No GPIO poll host given. Not polling GPIOs")
 		s.Cfg.RunTime.RunPoll = false
 	} else {
-		logger.Info(fmt.Sprintf("Starting to poll GPIOs from %v", s.Cfg.Gpio.Url))
+		logger.Info(fmt.Sprintf("Starting to poll GPIOs from host %v", s.Cfg.Gpio.Host))
 		s.Cfg.RunTime.RunPoll = true
 	}
 
 	for s.Cfg.RunTime.RunPoll == true {
-		//PollRun(s)
+		PollRun(s)
 		time.Sleep(time.Duration(s.Cfg.Gpio.IntervalSec) * time.Second)
 	}
+}
+
+func PollRun(s DefaultGpioPollService) {
+	pollUrl := url.URL{
+		Scheme: "http",
+		Host:   s.Cfg.Gpio.Host,
+		Path:   "/devStat.xml",
+	}
+	body, err := GetDataFromPollUrl(pollUrl.String())
+	if err == nil {
+		// process data
+		logger.Debug(string(body))
+	}
+}
+
+func GetDataFromPollUrl(pollUrl string) ([]byte, error) {
+	req, _ := http.NewRequest("GET", pollUrl, nil)
+	req.AddCookie(cookie)
+	resp, err := httpGpioClient.Do(req)
+	if err != nil {
+		logger.Error("Error while polling GPIO data", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error("Error while reading GPIO data", err)
+		return nil, err
+	}
+	return body, nil
 }
 
 /*

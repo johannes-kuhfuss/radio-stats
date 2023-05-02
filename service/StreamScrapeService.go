@@ -48,7 +48,7 @@ func (s DefaultStreamScrapeService) Scrape() {
 		logger.Warn("No scrape URL given. Not scraping stream metrics")
 		s.Cfg.RunTime.RunScrape = false
 	} else {
-		logger.Info(fmt.Sprintf("Starting to scrape %v", s.Cfg.StreamScrape.Url))
+		logger.Info(fmt.Sprintf("Starting to scrape stream metrics from %v", s.Cfg.StreamScrape.Url))
 		s.Cfg.RunTime.RunScrape = true
 	}
 
@@ -62,7 +62,7 @@ func ScrapeRun(s DefaultStreamScrapeService) {
 	var streamData domain.IceCastStats
 	s.Cfg.RunTime.StreamScrapeCount++
 	s.Cfg.Metrics.StreamScrapeCount.Inc()
-	body, err := GetDataFromUrl(s.Cfg.StreamScrape.Url)
+	body, err := GetDataFromStreamUrl(s.Cfg.StreamScrape.Url)
 	if err == nil {
 		sanitizedBody := sanitize(body)
 		streamData, err = unMarshall(sanitizedBody)
@@ -75,17 +75,17 @@ func ScrapeRun(s DefaultStreamScrapeService) {
 	}
 }
 
-func GetDataFromUrl(Url string) ([]byte, error) {
+func GetDataFromStreamUrl(Url string) ([]byte, error) {
 	resp, err := httpStreamClient.Get(Url)
 	if err != nil {
-		logger.Error("Error while scraping", err)
+		logger.Error("Error while scraping stream metrics", err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		logger.Error("Error while reading scrape response", err)
+		logger.Error("Error while reading scrape response for stream metrics", err)
 		return nil, err
 	}
 	return body, nil
@@ -100,7 +100,7 @@ func unMarshall(sanitizedBody string) (domain.IceCastStats, error) {
 	var streamData domain.IceCastStats
 	err := json.Unmarshal([]byte(sanitizedBody), &streamData)
 	if err != nil {
-		logger.Error("Error while converting to JSON", err)
+		logger.Error("Error while converting stream metrics to JSON", err)
 		return streamData, err
 	}
 	return streamData, nil

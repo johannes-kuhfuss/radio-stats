@@ -46,7 +46,9 @@ type AppConfig struct {
 		FfmpegExe   string `envconfig:"STREAM_VOLDETECT_FFMPEG" default:"./prog/ffmpeg.exe"`
 	}
 	Gpio struct {
-		Url         string         `envconfig:"GPIO_URL"`
+		Host        string         `envconfig:"GPIO_HOST"`
+		User        string         `envconfig:"GPIO_USER" default:"reader"`
+		Password    string         `envconfig:"GPIO_PASSWORD" default:"reader"`
 		IntervalSec int            `envconfig:"GPIO_POLL_INTERVAL_SEC" default:"1"`
 		Names       map[int]string `envconfig:"GPIO_NAMES"`
 	}

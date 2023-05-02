@@ -28,7 +28,7 @@ func Test_GetDatafromUrl_NoUrl_ReturnsError(t *testing.T) {
 	teardown := setupTest(t)
 	defer teardown()
 
-	body, err := GetDataFromUrl("")
+	body, err := GetDataFromStreamUrl("")
 
 	assert.Nil(t, body)
 	assert.NotNil(t, err)
@@ -44,7 +44,7 @@ func Test_GetDatafromUrl_ReturnsNoError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	body, err := GetDataFromUrl(server.URL)
+	body, err := GetDataFromStreamUrl(server.URL)
 
 	assert.NotNil(t, body)
 	assert.Nil(t, err)

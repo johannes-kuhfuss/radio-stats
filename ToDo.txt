@@ -1,2 +1,8 @@
 Add to source control
 - script to add user, group, rights to access serial port (add to group dialout)
+
+
+- Notes
+-- Set State
+http://192.168.178.46/setDO.html?Pin=23&State=T
+http://192.168.178.46/setDO.html?Pin=23&State=T&u=reader&p=reader

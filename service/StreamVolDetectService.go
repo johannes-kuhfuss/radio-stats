@@ -29,10 +29,10 @@ func NewStreamVolDetectService(cfg *config.AppConfig) DefaultStreamVolDetectServ
 
 func (s DefaultStreamVolDetectService) Listen() {
 	if s.Cfg.StreamVolDetect.Url == "" {
-		logger.Warn("No volume detection URL given. Not starting volume detection")
+		logger.Warn("No volume detection URL given. Not starting stream volume detection")
 		s.Cfg.RunTime.RunListen = false
 	} else {
-		logger.Info(fmt.Sprintf("Starting to detect volume on %v", s.Cfg.StreamVolDetect.Url))
+		logger.Info(fmt.Sprintf("Starting to detect vstream olume on %v", s.Cfg.StreamVolDetect.Url))
 		s.Cfg.RunTime.RunListen = true
 	}
 
