@@ -2,14 +2,16 @@ package service
 
 import (
 	"bytes"
+	"encoding/xml"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/johannes-kuhfuss/radio-stats/config"
+	"github.com/johannes-kuhfuss/radio-stats/domain"
 	"github.com/johannes-kuhfuss/services_utils/logger"
+	"golang.org/x/net/html/charset"
 )
 
 type GpioPollService interface {
@@ -84,14 +86,16 @@ func PollRun(s DefaultGpioPollService) {
 		Host:   s.Cfg.Gpio.Host,
 		Path:   "/devStat.xml",
 	}
-	body, err := GetDataFromPollUrl(pollUrl.String())
+	gpioState, err := GetXmlFromPollUrl(pollUrl.String())
 	if err == nil {
-		// process data
-		logger.Debug(string(body))
+		mapState(gpioState, s.Cfg)
+		updateGpioMetrics(s.Cfg)
 	}
 }
 
-func GetDataFromPollUrl(pollUrl string) ([]byte, error) {
+func GetXmlFromPollUrl(pollUrl string) (*domain.DevStat, error) {
+	var gpioState domain.DevStat
+
 	req, _ := http.NewRequest("GET", pollUrl, nil)
 	req.AddCookie(cookie)
 	resp, err := httpGpioClient.Do(req)
@@ -101,35 +105,38 @@ func GetDataFromPollUrl(pollUrl string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	decoder := xml.NewDecoder(resp.Body)
+	decoder.CharsetReader = charset.NewReaderLabel
+	err = decoder.Decode(&gpioState)
 	if err != nil {
-		logger.Error("Error while reading GPIO data", err)
+		logger.Error("Error while converting GPIO data to XML", err)
 		return nil, err
 	}
-	return body, nil
+	return &gpioState, nil
 }
 
-/*
-func setGpioState(cfg *config.AppConfig, stateBool []bool) {
-	cfg.RunTime.Gpio01State = !stateBool[7]
-	cfg.RunTime.Gpio02State = !stateBool[6]
-	cfg.RunTime.Gpio03State = !stateBool[5]
-	cfg.RunTime.Gpio04State = !stateBool[4]
-	cfg.RunTime.Gpio05State = !stateBool[3]
-	cfg.RunTime.Gpio06State = !stateBool[2]
-	cfg.RunTime.Gpio07State = !stateBool[1]
-	cfg.RunTime.Gpio08State = !stateBool[0]
+func mapState(gpioState *domain.DevStat, cfg *config.AppConfig) {
+	for i1, v1 := range gpioState.In {
+		for i2, v2 := range cfg.RunTime.Gpios {
+			if (i1 + 1) == v2.Id {
+				cfg.RunTime.Gpios[i2].State = stringToBool(v1)
+			}
+		}
+	}
 }
 
-func updateGpioMetrics(cfg *config.AppConfig, stateBool []bool) {
-	cfg.Metrics.GpioStateGauge.WithLabelValues(cfg.Gpio.Gpio01Name).Set(float64(boolToInt(!stateBool[7])))
-	cfg.Metrics.GpioStateGauge.WithLabelValues(cfg.Gpio.Gpio02Name).Set(float64(boolToInt(!stateBool[6])))
-	cfg.Metrics.GpioStateGauge.WithLabelValues(cfg.Gpio.Gpio03Name).Set(float64(boolToInt(!stateBool[5])))
-	cfg.Metrics.GpioStateGauge.WithLabelValues(cfg.Gpio.Gpio04Name).Set(float64(boolToInt(!stateBool[4])))
-	cfg.Metrics.GpioStateGauge.WithLabelValues(cfg.Gpio.Gpio05Name).Set(float64(boolToInt(!stateBool[3])))
-	cfg.Metrics.GpioStateGauge.WithLabelValues(cfg.Gpio.Gpio06Name).Set(float64(boolToInt(!stateBool[2])))
-	cfg.Metrics.GpioStateGauge.WithLabelValues(cfg.Gpio.Gpio07Name).Set(float64(boolToInt(!stateBool[1])))
-	cfg.Metrics.GpioStateGauge.WithLabelValues(cfg.Gpio.Gpio08Name).Set(float64(boolToInt(!stateBool[0])))
+func stringToBool(s string) bool {
+	if s == "0" {
+		return false
+	} else {
+		return true
+	}
+}
+
+func updateGpioMetrics(cfg *config.AppConfig) {
+	for _, v := range cfg.RunTime.Gpios {
+		cfg.Metrics.GpioStateGauge.WithLabelValues(v.Name).Set(float64(boolToInt(v.State)))
+	}
 }
 
 func boolToInt(state bool) int {
@@ -139,4 +146,3 @@ func boolToInt(state bool) int {
 		return 0
 	}
 }
-*/
