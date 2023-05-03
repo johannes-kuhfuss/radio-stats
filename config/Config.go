@@ -1,8 +1,11 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -13,10 +16,41 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+type PinConfig struct {
+	Name   string
+	Invert bool
+}
+
 type PinData struct {
-	Id    int
-	Name  string
-	State bool
+	Id     int
+	Name   string
+	Invert bool
+	State  bool
+}
+
+type PinConfigDecoder map[int]PinConfig
+
+func (pdd *PinConfigDecoder) Decode(value string) error {
+	gpioData := map[int]PinConfig{}
+	pins := strings.Split(value, ";")
+	for _, pin := range pins {
+		pinData := PinConfig{}
+		kvpair := strings.Split(pin, "=")
+		if len(kvpair) != 2 {
+			return fmt.Errorf("invalid map item: %q", pin)
+		}
+		index, err := strconv.Atoi(kvpair[0])
+		if err != nil {
+			return fmt.Errorf("invalid map index: %q", kvpair[0])
+		}
+		err = json.Unmarshal([]byte(kvpair[1]), &pinData)
+		if err != nil {
+			return fmt.Errorf("invalid map json: %w", err)
+		}
+		gpioData[index] = pinData
+	}
+	*pdd = PinConfigDecoder(gpioData)
+	return nil
 }
 
 type AppConfig struct {
@@ -46,11 +80,11 @@ type AppConfig struct {
 		FfmpegExe   string `envconfig:"STREAM_VOLDETECT_FFMPEG" default:"./prog/ffmpeg.exe"`
 	}
 	Gpio struct {
-		Host        string         `envconfig:"GPIO_HOST"`
-		User        string         `envconfig:"GPIO_USER" default:"reader"`
-		Password    string         `envconfig:"GPIO_PASSWORD" default:"reader"`
-		IntervalSec int            `envconfig:"GPIO_POLL_INTERVAL_SEC" default:"1"`
-		Names       map[int]string `envconfig:"GPIO_NAMES"`
+		Host        string           `envconfig:"GPIO_HOST"`
+		User        string           `envconfig:"GPIO_USER" default:"reader"`
+		Password    string           `envconfig:"GPIO_PASSWORD" default:"reader"`
+		IntervalSec int              `envconfig:"GPIO_POLL_INTERVAL_SEC" default:"1"`
+		Config      PinConfigDecoder `envconfig:"GPIO_CONFIG"`
 	}
 	Metrics struct {
 		StreamListenerGauge  prometheus.GaugeVec
@@ -84,17 +118,7 @@ func InitConfig(file string, config *AppConfig) api_error.ApiErr {
 	if err != nil {
 		return api_error.NewInternalServerError("Could not initalize configuration. Check your environment variables", err)
 	}
-	for key, val := range config.Gpio.Names {
-		var gpio PinData
-		gpio.Id = key
-		gpio.Name = val
-		gpio.State = false
-		config.RunTime.Gpios = append(config.RunTime.Gpios, gpio)
-	}
-	sort.SliceStable(config.RunTime.Gpios, func(i, j int) bool {
-		return config.RunTime.Gpios[i].Id < config.RunTime.Gpios[j].Id
-	})
-
+	setupGpios(config)
 	config.RunTime.StreamScrapeCount = 0
 	config.RunTime.RunScrape = false
 	config.RunTime.RunListen = false
@@ -109,4 +133,18 @@ func loadConfig(file string) error {
 		return err
 	}
 	return nil
+}
+
+func setupGpios(config *AppConfig) {
+	for key, val := range config.Gpio.Config {
+		var gpio PinData
+		gpio.Id = key
+		gpio.Name = val.Name
+		gpio.Invert = val.Invert
+		gpio.State = false
+		config.RunTime.Gpios = append(config.RunTime.Gpios, gpio)
+	}
+	sort.SliceStable(config.RunTime.Gpios, func(i, j int) bool {
+		return config.RunTime.Gpios[i].Id < config.RunTime.Gpios[j].Id
+	})
 }

@@ -22,13 +22,13 @@ func Test_GetConfig_Returns_NoError(t *testing.T) {
 }
 
 func Test_boolToStringState_True(t *testing.T) {
-	res := boolToStringState(true)
+	res := stateBoolToString(true)
 	assert.EqualValues(t, "Active", res)
 
 }
 
 func Test_boolToStringState_False(t *testing.T) {
-	res := boolToStringState(false)
+	res := stateBoolToString(false)
 	assert.EqualValues(t, "Inactive", res)
 
 }

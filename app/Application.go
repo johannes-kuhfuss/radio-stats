@@ -139,7 +139,7 @@ func initMetrics() {
 		Namespace: "Coloradio",
 		Subsystem: "GPIOs",
 		Name:      "status",
-		Help:      "Status of GPIO 1 or 0",
+		Help:      "Status of GPIO 1 (active) or 0 (inactive)",
 	}, []string{
 		"gpioName",
 	})

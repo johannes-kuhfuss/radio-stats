@@ -79,7 +79,7 @@
                         </tr>
                         {{ range .configdata.GpioPins }}
                         <tr>
-                          <td> {{ .Name }} ({{ .Id }}) </td>
+                          <td> {{ .Name }} (Pin {{ .Id }}, {{ .Invert}}) </td>
                           <td> {{ .State }} </td>
                         </tr>
                         {{ end }}

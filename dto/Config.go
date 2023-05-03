@@ -22,9 +22,10 @@ type ConfigResp struct {
 	GpioHost                   string
 	GpioPollIntervalSec        string
 	GpioPins                   []struct {
-		Id    string
-		Name  string
-		State string
+		Id     string
+		Name   string
+		Invert string
+		State  string
 	}
 	StreamVolDetectionUrl         string
 	StreamVolDetectionIntervalSec string
@@ -33,11 +34,19 @@ type ConfigResp struct {
 	StreamVolume                  string
 }
 
-func boolToStringState(state bool) string {
+func stateBoolToString(state bool) string {
 	if state {
 		return "Active"
 	} else {
 		return "Inactive"
+	}
+}
+
+func invertBoolToString(state bool) string {
+	if state {
+		return "Inverted"
+	} else {
+		return "Non inverted"
 	}
 }
 
@@ -68,13 +77,15 @@ func GetConfig(cfg *config.AppConfig) ConfigResp {
 	}
 	for _, v := range cfg.RunTime.Gpios {
 		var pinData struct {
-			Id    string
-			Name  string
-			State string
+			Id     string
+			Name   string
+			Invert string
+			State  string
 		}
 		pinData.Id = strconv.Itoa(v.Id)
 		pinData.Name = v.Name
-		pinData.State = boolToStringState(v.State)
+		pinData.Invert = invertBoolToString(v.Invert)
+		pinData.State = stateBoolToString(v.State)
 		resp.GpioPins = append(resp.GpioPins, pinData)
 	}
 	return resp

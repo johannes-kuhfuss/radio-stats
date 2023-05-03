@@ -119,7 +119,11 @@ func mapState(gpioState *domain.DevStat, cfg *config.AppConfig) {
 	for i1, v1 := range gpioState.In {
 		for i2, v2 := range cfg.RunTime.Gpios {
 			if (i1 + 1) == v2.Id {
-				cfg.RunTime.Gpios[i2].State = stringToBool(v1)
+				if v2.Invert {
+					cfg.RunTime.Gpios[i2].State = !stringToBool(v1)
+				} else {
+					cfg.RunTime.Gpios[i2].State = stringToBool(v1)
+				}
 			}
 		}
 	}
