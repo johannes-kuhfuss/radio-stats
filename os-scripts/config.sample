@@ -32,7 +32,7 @@ STREAM_SCRAPE_URL="https://streaming.fueralle.org/status-json.xsl"
 
 # Stream Volume Detect Configuration
 # Url of stream to listen to - no default *** must set ***
-STREAM_VOLDETECT_URL="https://streaming.fueralle.org/coloradio_160.mp3"
+STREAM_VOLDETECT_URL="https://streaming.fueralle.org/coloradio_48.aac"
 # Volume Detection Interval in seconds - defaults to "5"
 ##STREAM_VOLDETECT_INTERVAL_SEC=""
 # Volume Detection Listening Duration - defaults to "2"
@@ -41,16 +41,13 @@ STREAM_VOLDETECT_URL="https://streaming.fueralle.org/coloradio_160.mp3"
 ##STREAM_VOLDETECT_FFMPEG=""
 
 # GPIO Configuration
-# Serial Port to connect to - no default *** must set ***
-GPIO_SERIAL_PORT="/dev/ttyACM0"
-# GPIO Poll Interval in seconds - defaults to "1"
-##GPIO_POLL_INTERVAL_SEC=""
-# GPIO Names used to report metrics - default to "IO 0x"
-##Gpio01Name=""
-##Gpio02Name=""
-##Gpio03Name=""
-##Gpio04Name=""
-##Gpio05Name=""
-##Gpio06Name=""
-##Gpio07Name=""
-##Gpio08Name=""
+# Host to connect to for GPIO information - no default *** must set ***
+GPIO_HOST="192.168.178.46"
+# User name to authenticate - defaults to "reader"
+##GPIO_USER=""
+# Password to authenticate - defaults to "reader"
+##GPIO_PASSWORD=""
+# Poll interval in seconds - defaults to "1"
+##GPIO_INTERVAL_SEC=""
+# GPIO Pin Configuration, set Pin Number, Signal Name and whether to invert logic (assume 1 = non active), separate by semicolon - no default *** must set ***
+GPIO_CONFIG='1={"name":"SD1 Master Alarm","invert": true};2={"name":"SD1 Aux Alarm","invert":true}
