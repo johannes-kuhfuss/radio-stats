@@ -118,7 +118,7 @@ func InitConfig(file string, config *AppConfig) api_error.ApiErr {
 	if err != nil {
 		return api_error.NewInternalServerError("Could not initalize configuration. Check your environment variables", err)
 	}
-	setupGpios(config)
+	SetupGpios(config)
 	config.RunTime.StreamScrapeCount = 0
 	config.RunTime.RunScrape = false
 	config.RunTime.RunListen = false
@@ -135,7 +135,7 @@ func loadConfig(file string) error {
 	return nil
 }
 
-func setupGpios(config *AppConfig) {
+func SetupGpios(config *AppConfig) {
 	for key, val := range config.Gpio.Config {
 		var gpio PinData
 		gpio.Id = key

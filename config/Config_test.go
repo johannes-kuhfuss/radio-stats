@@ -116,7 +116,7 @@ func Test_Decode_ValidaData_ReturnsNoError(t *testing.T) {
 
 func Test_setupGpios_EmptyConfig_ReturnsEmptyGpioData(t *testing.T) {
 	var emptyCfg AppConfig
-	setupGpios(&emptyCfg)
+	SetupGpios(&emptyCfg)
 
 	assert.EqualValues(t, 0, len(emptyCfg.RunTime.Gpios))
 }
@@ -128,7 +128,7 @@ func Test_setupGpios_2Gpios_ReturnsGpioData(t *testing.T) {
 	dec.Decode(teststring)
 	cfg.Gpio.Config = dec
 
-	setupGpios(&cfg)
+	SetupGpios(&cfg)
 
 	assert.EqualValues(t, 2, len(cfg.RunTime.Gpios))
 	assert.EqualValues(t, "SD1 Master Alarm", cfg.RunTime.Gpios[0].Name)
