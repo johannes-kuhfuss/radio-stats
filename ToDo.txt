@@ -1,6 +1,6 @@
 Add to source control
 - script to add user, group, rights to access serial port (add to group dialout)
-
+- allow to set GPO state via web UI (notes below)
 
 - Notes
 -- Set State
