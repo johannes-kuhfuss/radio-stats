@@ -27,11 +27,12 @@ var (
 	httpGpioTr     http.Transport
 	httpGpioClient http.Client
 	cookie         *http.Cookie
+	loggedIn       bool = false
 )
 
 func NewGpioPollService(cfg *config.AppConfig) DefaultGpioPollService {
 	InitGpioHttp()
-	LoginToGpio(cfg)
+	loggedIn = LoginToGpio(cfg)
 	return DefaultGpioPollService{
 		Cfg: cfg,
 	}
@@ -47,7 +48,7 @@ func InitGpioHttp() {
 	httpGpioClient = http.Client{Transport: &httpGpioTr}
 }
 
-func LoginToGpio(cfg *config.AppConfig) {
+func LoginToGpio(cfg *config.AppConfig) (success bool) {
 	loginString := fmt.Sprintf("u=%s&p=%s", cfg.Gpio.User, cfg.Gpio.Password)
 	bodyReader := bytes.NewBuffer([]byte(loginString))
 	loginUrl := url.URL{
@@ -59,9 +60,12 @@ func LoginToGpio(cfg *config.AppConfig) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	resp, err := httpGpioClient.Do(req)
 	if err != nil {
-		logger.Error("Error while logging in to GPIO host", err)
+		logger.Error(fmt.Sprintf("Could not authenticate to host %v", cfg.Gpio.Host), err)
+		return false
 	} else {
+		logger.Info("Successfully authenticated")
 		cookie = resp.Cookies()[0]
+		return true
 	}
 }
 
@@ -75,12 +79,22 @@ func (s DefaultGpioPollService) Poll() {
 	}
 
 	for s.Cfg.RunTime.RunPoll == true {
-		PollRun(s)
+		if loggedIn {
+			err := PollRun(s)
+			if err != nil {
+				if err.Error() == "expected element type <devStat> but have <html>" {
+					logger.Warn("Unauthenticated. Trying to re-authenticate...")
+					loggedIn = false
+				}
+			}
+		} else {
+			loggedIn = LoginToGpio(s.Cfg)
+		}
 		time.Sleep(time.Duration(s.Cfg.Gpio.IntervalSec) * time.Second)
 	}
 }
 
-func PollRun(s DefaultGpioPollService) {
+func PollRun(s DefaultGpioPollService) error {
 	pollUrl := url.URL{
 		Scheme: "http",
 		Host:   s.Cfg.Gpio.Host,
@@ -90,7 +104,11 @@ func PollRun(s DefaultGpioPollService) {
 	if err == nil {
 		mapState(gpioState, s.Cfg)
 		updateGpioMetrics(s.Cfg)
+		return nil
+	} else {
+		return err
 	}
+
 }
 
 func GetXmlFromPollUrl(pollUrl string) (*domain.DevStat, error) {
