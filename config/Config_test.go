@@ -73,3 +73,65 @@ func Test_InitConfig_WithEnvFile_SetsValues(t *testing.T) {
 	assert.EqualValues(t, 10, testConfig.Server.GracefulShutdownTime)
 	assert.EqualValues(t, "debug", testConfig.Gin.Mode)
 }
+
+func Test_Decode_InvalidString_ReturnsError(t *testing.T) {
+	var dec PinConfigDecoder
+	var teststring = "this will not work"
+	err := dec.Decode(teststring)
+
+	assert.NotNil(t, err)
+	assert.EqualValues(t, "invalid map item: \"this will not work\"", err.Error())
+}
+
+func Test_Decode_InvalidIndex_ReturnsError(t *testing.T) {
+	var dec PinConfigDecoder
+	var teststring = "A={\"name\":\"SD1 Master Alarm\",\"invert\": true}"
+	err := dec.Decode(teststring)
+
+	assert.NotNil(t, err)
+	assert.EqualValues(t, "invalid map index: \"A\"", err.Error())
+}
+
+func Test_Decode_InvalidJson_ReturnsError(t *testing.T) {
+	var dec PinConfigDecoder
+	var teststring = "1={no json to be found}"
+	err := dec.Decode(teststring)
+
+	assert.NotNil(t, err)
+	assert.EqualValues(t, "invalid map json: invalid character 'n' looking for beginning of object key string", err.Error())
+}
+
+func Test_Decode_ValidaData_ReturnsNoError(t *testing.T) {
+	var dec PinConfigDecoder
+	var teststring = "1={\"name\":\"SD1 Master Alarm\",\"invert\": true};20={\"name\":\"SD1 Aux Alarm\",\"invert\":false}"
+	err := dec.Decode(teststring)
+
+	assert.Nil(t, err)
+	assert.EqualValues(t, 2, len(dec))
+	assert.EqualValues(t, "SD1 Master Alarm", dec[1].Name)
+	assert.EqualValues(t, "SD1 Aux Alarm", dec[20].Name)
+	assert.EqualValues(t, true, dec[1].Invert)
+	assert.EqualValues(t, false, dec[20].Invert)
+}
+
+func Test_setupGpios_EmptyConfig_ReturnsEmptyGpioData(t *testing.T) {
+	var emptyCfg AppConfig
+	setupGpios(&emptyCfg)
+
+	assert.EqualValues(t, 0, len(emptyCfg.RunTime.Gpios))
+}
+
+func Test_setupGpios_2Gpios_ReturnsGpioData(t *testing.T) {
+	var cfg AppConfig
+	var dec PinConfigDecoder
+	var teststring = "1={\"name\":\"SD1 Master Alarm\",\"invert\": true};20={\"name\":\"SD1 Aux Alarm\",\"invert\":false}"
+	dec.Decode(teststring)
+	cfg.Gpio.Config = dec
+
+	setupGpios(&cfg)
+
+	assert.EqualValues(t, 2, len(cfg.RunTime.Gpios))
+	assert.EqualValues(t, "SD1 Master Alarm", cfg.RunTime.Gpios[0].Name)
+	assert.EqualValues(t, 20, cfg.RunTime.Gpios[1].Id)
+	assert.EqualValues(t, false, cfg.RunTime.Gpios[1].State)
+}
