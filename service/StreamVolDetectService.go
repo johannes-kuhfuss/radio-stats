@@ -47,11 +47,11 @@ func ListenRun(s DefaultStreamVolDetectService) {
 	s.Cfg.Metrics.StreamVolDetectCount.Inc()
 	lines := runFfmpeg(s)
 	if lines != nil {
-		updateMetrics(lines, s)
+		updateVolMetrics(lines, s)
 	}
 }
 
-func updateMetrics(lines []string, s DefaultStreamVolDetectService) {
+func updateVolMetrics(lines []string, s DefaultStreamVolDetectService) {
 	for _, line := range lines {
 		if strings.Contains(line, "mean_volume") {
 			re := regexp.MustCompile(`[-]\d*[\.]\d`)
