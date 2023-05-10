@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -66,9 +67,15 @@ func LoginToGpio(cfg *config.AppConfig) (success bool) {
 		logger.Error(fmt.Sprintf("Could not authenticate to host %v", cfg.Gpio.Host), err)
 		return false
 	} else {
-		logger.Info("Successfully authenticated")
-		cookie = resp.Cookies()[0]
-		return true
+		if len(resp.Cookies()) > 0 {
+			logger.Info("Successfully authenticated")
+			cookie = resp.Cookies()[0]
+			return true
+		} else {
+			logger.Error(fmt.Sprintf("Host %v did not return cookie", cfg.Gpio.Host), err)
+			return false
+		}
+
 	}
 }
 
@@ -121,6 +128,11 @@ func GetXmlFromPollUrl(pollUrl string) (*domain.DevStat, error) {
 	req.AddCookie(cookie)
 	resp, err := httpGpioClient.Do(req)
 	if err != nil {
+		logger.Error("Error while polling GPIO data", err)
+		return nil, err
+	}
+	if resp.StatusCode == 404 {
+		err := errors.New("URl not found")
 		logger.Error("Error while polling GPIO data", err)
 		return nil, err
 	}
