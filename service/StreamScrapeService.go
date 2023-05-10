@@ -40,7 +40,10 @@ func InitStreamHttp() {
 		MaxIdleConns:       0,
 		IdleConnTimeout:    0,
 	}
-	httpStreamClient = http.Client{Transport: &httpStreamTr}
+	httpStreamClient = http.Client{
+		Transport: &httpStreamTr,
+		Timeout: 5 * time.Second,
+	}
 }
 
 func (s DefaultStreamScrapeService) Scrape() {

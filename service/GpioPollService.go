@@ -45,7 +45,10 @@ func InitGpioHttp() {
 		MaxIdleConns:       0,
 		IdleConnTimeout:    0,
 	}
-	httpGpioClient = http.Client{Transport: &httpGpioTr}
+	httpGpioClient = http.Client{
+		Transport: &httpGpioTr,
+		Timeout:   5 * time.Second,
+	}
 }
 
 func LoginToGpio(cfg *config.AppConfig) (success bool) {
