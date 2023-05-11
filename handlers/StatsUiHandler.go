@@ -25,6 +25,13 @@ func (uh *StatsUiHandler) StatusPage(c *gin.Context) {
 	})
 }
 
+func (uh *StatsUiHandler) SwitchPage(c *gin.Context) {
+	configData := dto.GetConfig(uh.Cfg)
+	c.HTML(http.StatusOK, "switch.page.tmpl", gin.H{
+		"configdata": configData,
+	})
+}
+
 func (uh *StatsUiHandler) AboutPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "about.page.tmpl", nil)
 }

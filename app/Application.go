@@ -174,6 +174,7 @@ func wireApp() {
 func mapUrls() {
 	cfg.RunTime.Router.GET("/", statsUiHandler.StatusPage)
 	cfg.RunTime.Router.GET("/about", statsUiHandler.AboutPage)
+	cfg.RunTime.Router.GET("/switch", statsUiHandler.SwitchPage)
 	cfg.RunTime.Router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 }
 

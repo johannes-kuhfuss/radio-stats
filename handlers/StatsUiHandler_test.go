@@ -54,3 +54,16 @@ func Test_AboutPage_Returns_About(t *testing.T) {
 	assert.EqualValues(t, http.StatusOK, recorder.Code)
 	assert.Nil(t, parseErr)
 }
+
+func Test_SwitchPage_Returns_Switch(t *testing.T) {
+	teardown := setupUiTest(t)
+	defer teardown()
+	router.GET("/switch", uh.AboutPage)
+	request, _ := http.NewRequest(http.MethodGet, "/switch", nil)
+
+	router.ServeHTTP(recorder, request)
+
+	_, parseErr := html.Parse(io.Reader(recorder.Body))
+	assert.EqualValues(t, http.StatusOK, recorder.Code)
+	assert.Nil(t, parseErr)
+}
