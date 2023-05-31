@@ -102,6 +102,7 @@ type AppConfig struct {
 		StreamVolume         float64
 		RunScrape            bool
 		RunPoll              bool
+		GpioConnected        bool
 		RunListen            bool
 		Gpios                []PinData
 	}

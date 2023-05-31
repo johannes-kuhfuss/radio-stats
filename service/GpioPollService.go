@@ -34,6 +34,7 @@ var (
 func NewGpioPollService(cfg *config.AppConfig) DefaultGpioPollService {
 	InitGpioHttp()
 	loggedIn = LoginToGpio(cfg)
+	cfg.RunTime.GpioConnected = loggedIn
 	return DefaultGpioPollService{
 		Cfg: cfg,
 	}
@@ -60,6 +61,15 @@ func LoginToGpio(cfg *config.AppConfig) (success bool) {
 		Host:   cfg.Gpio.Host,
 		Path:   "/login.html",
 	}
+	/*
+		host := cfg.Gpio.Host + ":80"
+		d := net.Dialer{Timeout: 1 * time.Second}
+		_, err := d.Dial("tcp", host)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Could not connect to host %v", cfg.Gpio.Host), err)
+			return false
+		}
+	*/
 	req, _ := http.NewRequest("POST", loginUrl.String(), bodyReader)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	resp, err := httpGpioClient.Do(req)
@@ -95,10 +105,12 @@ func (s DefaultGpioPollService) Poll() {
 				if err.Error() == "expected element type <devStat> but have <html>" {
 					logger.Warn("Unauthenticated. Trying to re-authenticate...")
 					loggedIn = false
+					s.Cfg.RunTime.GpioConnected = loggedIn
 				}
 			}
 		} else {
 			loggedIn = LoginToGpio(s.Cfg)
+			s.Cfg.RunTime.GpioConnected = loggedIn
 		}
 		time.Sleep(time.Duration(s.Cfg.Gpio.IntervalSec) * time.Second)
 	}
