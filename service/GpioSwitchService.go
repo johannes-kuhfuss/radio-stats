@@ -1,15 +1,17 @@
 package service
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/johannes-kuhfuss/radio-stats/config"
+	"github.com/johannes-kuhfuss/services_utils/api_error"
 	"github.com/johannes-kuhfuss/services_utils/logger"
 )
 
 type GpioSwitchService interface {
-	Switch(xPoint string) (success bool)
+	Switch(string) api_error.ApiErr
 }
 
 type DefaultGpioSwitchService struct {
@@ -41,7 +43,8 @@ func InitGpioSwitchHttp() {
 	}
 }
 
-func (s DefaultGpioSwitchService) Switch(xPoint string) (success bool) {
-	logger.Info("Init Switch Service")
-	return false
+func (s DefaultGpioSwitchService) Switch(xPoint string) (err api_error.ApiErr) {
+	logger.Info(fmt.Sprintf("In Switch method. xPoint: %v", xPoint))
+	// http://192.168.178.46/setDO.html?Pin=23&State=T&u=reader&p=reader
+	return nil
 }

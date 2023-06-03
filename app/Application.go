@@ -29,6 +29,7 @@ var (
 	ctx                 context.Context
 	cancel              context.CancelFunc
 	statsUiHandler      handlers.StatsUiHandler
+	gpioSwitchHandler   handlers.GpioSwitchHandler
 	streamScrapeService service.DefaultStreamScrapeService
 	gpioPollService     service.DefaultGpioPollService
 	gpioSwitchService   service.DefaultGpioSwitchService
@@ -125,6 +126,7 @@ func wireApp() {
 	streamScrapeService = service.NewStreamScrapeService(&cfg)
 	gpioPollService = service.NewGpioPollService(&cfg)
 	gpioSwitchService = service.NewGpioSwitchService(&cfg)
+	gpioSwitchHandler = handlers.NewGpioSwitchHandler(&cfg, gpioSwitchService)
 	streamDetectService = service.NewStreamVolDetectService(&cfg)
 }
 
@@ -133,6 +135,7 @@ func mapUrls() {
 	cfg.RunTime.Router.GET("/about", statsUiHandler.AboutPage)
 	cfg.RunTime.Router.GET("/switch", statsUiHandler.SwitchPage)
 	cfg.RunTime.Router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	cfg.RunTime.Router.POST("/switch", gpioSwitchHandler.SwitchXpoint)
 }
 
 func RegisterForOsSignals() {
