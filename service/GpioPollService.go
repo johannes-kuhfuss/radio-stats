@@ -24,15 +24,15 @@ type DefaultGpioPollService struct {
 }
 
 var (
-	runPoll        bool = false
-	httpGpioTr     http.Transport
-	httpGpioClient http.Client
-	cookie         *http.Cookie
-	loggedIn       bool = false
+	runPoll            bool = false
+	httpGpioPollTr     http.Transport
+	httpGpioPollClient http.Client
+	cookie             *http.Cookie
+	loggedIn           bool = false
 )
 
 func NewGpioPollService(cfg *config.AppConfig) DefaultGpioPollService {
-	InitGpioHttp()
+	InitGpioPollHttp()
 	loggedIn = LoginToGpio(cfg)
 	cfg.RunTime.GpioConnected = loggedIn
 	return DefaultGpioPollService{
@@ -40,15 +40,15 @@ func NewGpioPollService(cfg *config.AppConfig) DefaultGpioPollService {
 	}
 }
 
-func InitGpioHttp() {
-	httpGpioTr = http.Transport{
+func InitGpioPollHttp() {
+	httpGpioPollTr = http.Transport{
 		DisableKeepAlives:  false,
 		DisableCompression: false,
 		MaxIdleConns:       0,
 		IdleConnTimeout:    0,
 	}
-	httpGpioClient = http.Client{
-		Transport: &httpGpioTr,
+	httpGpioPollClient = http.Client{
+		Transport: &httpGpioPollTr,
 		Timeout:   5 * time.Second,
 	}
 }
@@ -61,18 +61,9 @@ func LoginToGpio(cfg *config.AppConfig) (success bool) {
 		Host:   cfg.Gpio.Host,
 		Path:   "/login.html",
 	}
-	/*
-		host := cfg.Gpio.Host + ":80"
-		d := net.Dialer{Timeout: 1 * time.Second}
-		_, err := d.Dial("tcp", host)
-		if err != nil {
-			logger.Error(fmt.Sprintf("Could not connect to host %v", cfg.Gpio.Host), err)
-			return false
-		}
-	*/
 	req, _ := http.NewRequest("POST", loginUrl.String(), bodyReader)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	resp, err := httpGpioClient.Do(req)
+	resp, err := httpGpioPollClient.Do(req)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Could not authenticate to host %v", cfg.Gpio.Host), err)
 		return false
@@ -138,7 +129,7 @@ func GetXmlFromPollUrl(pollUrl string) (*domain.DevStat, error) {
 
 	req, _ := http.NewRequest("GET", pollUrl, nil)
 	req.AddCookie(cookie)
-	resp, err := httpGpioClient.Do(req)
+	resp, err := httpGpioPollClient.Do(req)
 	if err != nil {
 		logger.Error("Error while polling GPIO data", err)
 		return nil, err
