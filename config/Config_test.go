@@ -126,7 +126,7 @@ func Test_setupGpios_2Gpios_ReturnsGpioData(t *testing.T) {
 	var dec PinConfigDecoder
 	var teststring = "1={\"name\":\"SD1 Master Alarm\",\"invert\": true};20={\"name\":\"SD1 Aux Alarm\",\"invert\":false}"
 	dec.Decode(teststring)
-	cfg.Gpio.Config = dec
+	cfg.Gpio.InConfig = dec
 
 	SetupGpios(&cfg)
 

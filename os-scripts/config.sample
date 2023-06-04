@@ -49,5 +49,7 @@ GPIO_HOST="192.168.178.46"
 ##GPIO_PASSWORD=""
 # Poll interval in seconds - defaults to "1"
 ##GPIO_INTERVAL_SEC=""
-# GPIO Pin Configuration, set Pin Number, Signal Name and whether to invert logic (assume 1 = non active), separate by semicolon - no default *** must set ***
-GPIO_CONFIG='1={"name":"SD1 Master Alarm","invert": true};2={"name":"SD1 Aux Alarm","invert":true}
+# GPIO Input Pin Configuration, set Pin Number, Signal Name and whether to invert logic (assume 1 = non active), separate by semicolon - no default *** must set ***
+GPIO_IN_CONFIG='1={"name":"SD1 Master Alarm","invert": true};2={"name":"SD1 Aux Alarm","invert":true}
+# GPIO Output Pin Configuration - no default *** must set ***
+GPIO_OUT_CONFIG="KS04:26,KS05:27,KS06:28"

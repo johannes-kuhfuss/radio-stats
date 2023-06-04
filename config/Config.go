@@ -84,7 +84,8 @@ type AppConfig struct {
 		User        string           `envconfig:"GPIO_USER" default:"reader"`
 		Password    string           `envconfig:"GPIO_PASSWORD" default:"reader"`
 		IntervalSec int              `envconfig:"GPIO_POLL_INTERVAL_SEC" default:"1"`
-		Config      PinConfigDecoder `envconfig:"GPIO_CONFIG"`
+		InConfig    PinConfigDecoder `envconfig:"GPIO_IN_CONFIG"`
+		OutConfig   map[string]int   `envconfig:"GPIO_OUT_CONFIG"`
 	}
 	Metrics struct {
 		StreamListenerGauge  prometheus.GaugeVec
@@ -137,7 +138,7 @@ func loadConfig(file string) error {
 }
 
 func SetupGpios(config *AppConfig) {
-	for key, val := range config.Gpio.Config {
+	for key, val := range config.Gpio.InConfig {
 		var gpio PinData
 		gpio.Id = key
 		gpio.Name = val.Name
