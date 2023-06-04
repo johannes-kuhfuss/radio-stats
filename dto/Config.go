@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"sort"
 	"strconv"
 
 	"github.com/johannes-kuhfuss/radio-stats/config"
@@ -28,6 +29,7 @@ type ConfigResp struct {
 		Invert string
 		State  string
 	}
+	GpioOuts                      []string
 	StreamVolDetectionUrl         string
 	StreamVolDetectionIntervalSec string
 	StreamVolDetectionDuration    string
@@ -89,6 +91,10 @@ func GetConfig(cfg *config.AppConfig) ConfigResp {
 		pinData.Invert = invertBoolToString(v.Invert)
 		pinData.State = stateBoolToString(v.State)
 		resp.GpioPins = append(resp.GpioPins, pinData)
+	}
+	for s := range cfg.Gpio.OutConfig {
+		resp.GpioOuts = append(resp.GpioOuts, s)
+		sort.Strings(resp.GpioOuts)
 	}
 	return resp
 }

@@ -9,7 +9,15 @@
             </div>
         </div>
     </div>
-
+    <div class="container">
+        {{range .configdata.GpioOuts}}
+          <p>
+          <form id="ksaction">
+            <input type="submit" value="{{.}}" name="{{.}}" />
+          </form>
+          </p>
+        {{end}}
+    </div>
 
 {{ template "footer" .}}
 
