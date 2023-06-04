@@ -50,50 +50,39 @@ func (s DefaultGpioSwitchService) Switch(xPoint string) (err api_error.ApiErr) {
 		return api_error.NewInternalServerError("No GPIO host configured", nil)
 	}
 	// Format expected: http://<IP or DNS name>/setDO.html?Pin=<pin number>&State=T&u=<user name>&p=<password>
-	switchOnUrl := url.URL{
+	switchUrl := url.URL{
 		Scheme: "http",
 		Host:   s.Cfg.Gpio.Host,
 		Path:   "/setDO.html",
 	}
-	queryOn := switchOnUrl.Query()
+	queryOn := switchUrl.Query()
 	xPointNum := strconv.Itoa(s.Cfg.Gpio.OutConfig[xPoint])
 	queryOn.Set("Pin", xPointNum)
-	queryOn.Set("State", "1")
-	switchOnUrl.RawQuery = queryOn.Encode()
+	queryOn.Set("State", "T")
+	switchUrl.RawQuery = queryOn.Encode()
 	// add user and password manually since device expects it in this particular order
 	userString := fmt.Sprintf("&u=%v", s.Cfg.Gpio.User)
 	pwString := fmt.Sprintf("&p=%v", s.Cfg.Gpio.Password)
-	onUrlString := switchOnUrl.String() + userString + pwString
+	urlString := switchUrl.String() + userString + pwString
 
-	switchOffUrl := url.URL{
-		Scheme: "http",
-		Host:   s.Cfg.Gpio.Host,
-		Path:   "/setDO.html",
-	}
-	queryOff := switchOffUrl.Query()
-	queryOff.Set("Pin", xPointNum)
-	queryOff.Set("State", "0")
-	switchOffUrl.RawQuery = queryOn.Encode()
-	offUrlString := switchOnUrl.String() + userString + pwString
-
-	// Switch on and then off
-	reqOn, _ := http.NewRequest("GET", onUrlString, nil)
-	resp, reqErr := httpGpioSwitchClient.Do(reqOn)
+	// Toggle twice
+	req, _ := http.NewRequest("GET", urlString, nil)
+	resp, reqErr := httpGpioSwitchClient.Do(req)
 	if reqErr != nil {
-		msg := "Error while switching xpoint on"
+		msg := "Error while switching xpoint (1/2)"
 		logger.Error(msg, reqErr)
 		return api_error.NewInternalServerError(msg, reqErr)
 	}
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(500 * time.Millisecond)
 
-	reqOff, _ := http.NewRequest("GET", offUrlString, nil)
-	resp, reqErr = httpGpioSwitchClient.Do(reqOff)
+	resp, reqErr = httpGpioSwitchClient.Do(req)
 	if reqErr != nil {
-		msg := "Error while switching xpoint off"
+		msg := "Error while switching xpoint (2/2)"
 		logger.Error(msg, reqErr)
 		return api_error.NewInternalServerError(msg, reqErr)
 	}
+
 	defer resp.Body.Close()
 
 	return nil
