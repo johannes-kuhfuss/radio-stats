@@ -1,8 +1,6 @@
 Add to source control
 - script to add user, group, rights to access serial port (add to group dialout)
-- allow to set GPO state via web UI (notes below)
 
-- Notes
--- Set State
-http://192.168.178.46/setDO.html?Pin=23&State=T
-http://192.168.178.46/setDO.html?Pin=23&State=T&u=reader&p=reader
+Tests for Switch handler & service
+Display xpoint status on switch page w/ update on click
+Basic auth for switch page
