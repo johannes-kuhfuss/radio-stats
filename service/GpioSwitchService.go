@@ -74,7 +74,7 @@ func (s DefaultGpioSwitchService) Switch(xPoint string) (err api_error.ApiErr) {
 		return api_error.NewInternalServerError(msg, reqErr)
 	}
 
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(250 * time.Millisecond)
 
 	resp, reqErr = httpGpioSwitchClient.Do(req)
 	if reqErr != nil {
@@ -82,6 +82,8 @@ func (s DefaultGpioSwitchService) Switch(xPoint string) (err api_error.ApiErr) {
 		logger.Error(msg, reqErr)
 		return api_error.NewInternalServerError(msg, reqErr)
 	}
+
+	time.Sleep(250 * time.Millisecond)
 
 	defer resp.Body.Close()
 

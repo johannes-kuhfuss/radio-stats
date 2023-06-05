@@ -62,6 +62,7 @@ type AppConfig struct {
 		UseTls               bool   `envconfig:"USE_TLS" default:"false"`
 		CertFile             string `envconfig:"CERT_FILE" default:"./cert/cert.pem"`
 		KeyFile              string `envconfig:"KEY_FILE" default:"./cert/cert.key"`
+		AdminPassword        string `envconfig:"ADMIN_PASSWORD" default:"admini"`
 	}
 	Gin struct {
 		Mode         string `envconfig:"GIN_MODE" default:"release"`

@@ -13,6 +13,8 @@
 ##KEY_FILE=""
 # Time in seconds to wait for graceful shutdown - defaults to "10"
 ##GRACEFUL_SHUTDOWN_TIME=""
+# Admin password for basic auth protected resources - defaults to "admini"
+ADMIN_PASSWORD=""
 
 # Gin-Gonic Configuration
 # Gin-Gonic mode - defaults to "release" - Options: "Debug"

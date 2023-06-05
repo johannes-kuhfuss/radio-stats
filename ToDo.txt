@@ -3,4 +3,3 @@ Add to source control
 
 Tests for Switch handler & service
 Display xpoint status on switch page w/ update on click
-Basic auth for switch page
