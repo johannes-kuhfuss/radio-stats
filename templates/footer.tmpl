@@ -22,6 +22,13 @@
     {{end}}
 
     <script>
+      function submitForm(button_id) {
+        var http = new XMLHttpRequest();
+        http.open("POST", "/switch", true);
+        http.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+        var params = "xpoint=" + button_id
+        http.send(params);
+        }
     </script>
 
     </body>

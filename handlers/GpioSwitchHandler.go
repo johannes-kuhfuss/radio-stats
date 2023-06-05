@@ -26,13 +26,9 @@ func NewGpioSwitchHandler(cfg *config.AppConfig, svc service.GpioSwitchService) 
 
 func (sh *GpioSwitchHandler) SwitchXpoint(c *gin.Context) {
 	var switchReq dto.GpioSwitchRequest
-	if err := c.ShouldBindJSON(&switchReq); err != nil {
-		msg := "Invalid JSON body in switch request"
-		logger.Error(msg, err)
-		apiErr := api_error.NewBadRequestError(msg)
-		c.JSON(apiErr.StatusCode(), apiErr)
-		return
-	}
+	switchReq.Xpoint = c.PostForm("xpoint")
+	msg := fmt.Sprintf("XPoint: %v", switchReq.Xpoint)
+	logger.Info(msg)
 	err := sh.validateReq(switchReq)
 	if err != nil {
 		logger.Error("Error, no such xpoint", err)

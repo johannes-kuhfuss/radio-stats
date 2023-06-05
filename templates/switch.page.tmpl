@@ -11,11 +11,11 @@
     </div>
     <div class="container">
         {{range .configdata.GpioOuts}}
-          <p>
-          <form id="ksaction">
-            <input type="submit" value="{{.}}" name="{{.}}" />
+        <p>
+          <form action="" method="POST" onsubmit="return false">
+                <input type="submit" id="{{.}}" value="{{.}}" onclick="submitForm(this.id)" />
           </form>
-          </p>
+        </p>
         {{end}}
     </div>
 
