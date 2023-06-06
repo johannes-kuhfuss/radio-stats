@@ -2,4 +2,3 @@ Add to source control
 - script to add user, group, rights to access serial port (add to group dialout)
 
 Tests for Switch handler & service
-Display xpoint status on switch page w/ update on click
