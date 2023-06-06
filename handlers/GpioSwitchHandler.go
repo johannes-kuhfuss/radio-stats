@@ -27,8 +27,6 @@ func NewGpioSwitchHandler(cfg *config.AppConfig, svc service.GpioSwitchService) 
 func (sh *GpioSwitchHandler) SwitchXpoint(c *gin.Context) {
 	var switchReq dto.GpioSwitchRequest
 	switchReq.Xpoint = c.PostForm("xpoint")
-	msg := fmt.Sprintf("XPoint: %v", switchReq.Xpoint)
-	logger.Info(msg)
 	err := sh.validateReq(switchReq)
 	if err != nil {
 		logger.Error("Error, no such xpoint", err)

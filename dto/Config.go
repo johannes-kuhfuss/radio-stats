@@ -3,6 +3,7 @@ package dto
 import (
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/johannes-kuhfuss/radio-stats/config"
 )
@@ -24,6 +25,12 @@ type ConfigResp struct {
 	GpioConnected              string
 	GpioPollIntervalSec        string
 	GpioPins                   []struct {
+		Id     string
+		Name   string
+		Invert string
+		State  string
+	}
+	KsPins []struct {
 		Id     string
 		Name   string
 		Invert string
@@ -91,6 +98,9 @@ func GetConfig(cfg *config.AppConfig) ConfigResp {
 		pinData.Invert = invertBoolToString(v.Invert)
 		pinData.State = stateBoolToString(v.State)
 		resp.GpioPins = append(resp.GpioPins, pinData)
+		if strings.Contains(pinData.Name, "KS") {
+			resp.KsPins = append(resp.KsPins, pinData)
+		}
 	}
 	for s := range cfg.Gpio.OutConfig {
 		resp.GpioOuts = append(resp.GpioOuts, s)

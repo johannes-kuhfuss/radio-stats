@@ -65,6 +65,8 @@ func (s DefaultGpioSwitchService) Switch(xPoint string) (err api_error.ApiErr) {
 	pwString := fmt.Sprintf("&p=%v", s.Cfg.Gpio.Password)
 	urlString := switchUrl.String() + userString + pwString
 
+	logger.Info(fmt.Sprintf("Switching xpoint %v, pin %v", xPoint, xPointNum))
+
 	// Toggle twice
 	req, _ := http.NewRequest("GET", urlString, nil)
 	resp, reqErr := httpGpioSwitchClient.Do(req)
