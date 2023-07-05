@@ -21,7 +21,7 @@
       }
     ]
   },
-  "description": "Displays listeners of Coloradio streams per stream and over time",
+  "description": "Displays listeners of coloRadio streams per stream and over time",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -694,8 +694,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           },
@@ -722,7 +721,7 @@
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "9.5.2",
+      "pluginVersion": "9.2.5",
       "targets": [
         {
           "datasource": {
@@ -786,8 +785,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           },
@@ -844,8 +842,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Coloradio - Stream Details",
+  "title": "coloRadio - Stream Listener Details",
   "uid": "I_ueP_AVk",
-  "version": 5,
+  "version": 6,
   "weekStart": ""
 }

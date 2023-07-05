@@ -21,7 +21,7 @@
       }
     ]
   },
-  "description": "Displays listeners of Coloradio streams per stream and over time",
+  "description": "Displays most important status data",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -524,10 +524,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 15
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 8
       },
       "id": 19,
       "options": {
@@ -549,7 +549,7 @@
             "uid": "RsY6af14k"
           },
           "editorMode": "builder",
-          "expr": "Coloradio_Streams_volume",
+          "expr": "Coloradio_Streams_volume{streamName=\"https://streaming.fueralle.org/coloradio_48.aac\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -572,8 +572,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Coloradio - Status",
+  "title": "coloRadio - Status",
   "uid": "Ve1aisJVk",
-  "version": 10,
+  "version": 13,
   "weekStart": ""
 }

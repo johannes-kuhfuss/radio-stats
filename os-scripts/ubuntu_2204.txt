@@ -1,0 +1,32 @@
+
+sudo apt-get install ffmpeg
+sudo mkdir /opt/radio-stats
+sudo mv radio-stats /opt/radio-stats/
+sudo mv config /opt/radio-stats/
+sudo mv templates/ /opt/radio-stats/
+
+chmod +x /opt/radio-stats/radio-stats
+
+sudo nano /etc/systemd/system/radio-stats.service
+---
+[Unit]
+Description=Radio Stats service
+After=network.target
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=radio-stats
+ExecStart=/opt/radio-stats/radio-stats --config.file=/opt/radio-stats/config
+
+[Install]
+WantedBy=multi-user.target
+---
+
+sudo adduser --system --no-create-home radio-stats
+
+sudo systemctl enable radio-stats
+sudo systemctl start radio-stats
+
+sudo systemctl stop radio-stats

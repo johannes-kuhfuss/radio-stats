@@ -11,21 +11,14 @@
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
-        "target": {
-          "limit": 100,
-          "matchAny": false,
-          "tags": [],
-          "type": "dashboard"
-        },
         "type": "dashboard"
       }
     ]
   },
-  "description": "Displays listeners of Coloradio streams per stream and over time",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 4,
+  "id": 5,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -34,91 +27,7 @@
         "type": "prometheus",
         "uid": "RsY6af14k"
       },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "decimals": 0,
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "dark-green",
-                  "index": 1,
-                  "text": "On-Air"
-                },
-                "1": {
-                  "color": "dark-red",
-                  "index": 0,
-                  "text": "Silence"
-                }
-              },
-              "type": "value"
-            }
-          ],
-          "max": 1,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 0
-      },
-      "id": 16,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "9.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "RsY6af14k"
-          },
-          "editorMode": "builder",
-          "expr": "Coloradio_GPIOs_status{gpioName=\"SD1 Master Alarm\"}",
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "SD1 Main Alarm",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "RsY6af14k"
-      },
+      "description": "Stream Volume of coloRadio Internet Stream in dB",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -154,50 +63,30 @@
               "mode": "off"
             }
           },
-          "decimals": 0,
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "dark-green",
-                  "index": 1,
-                  "text": "On-Air"
-                },
-                "1": {
-                  "color": "dark-red",
-                  "index": 0,
-                  "text": "Silence"
-                }
-              },
-              "type": "value"
-            }
-          ],
-          "max": 1,
-          "min": 0,
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "dark-red",
                 "value": null
               },
               {
-                "color": "red",
-                "value": 1
+                "color": "dark-green",
+                "value": -50
               }
             ]
-          },
-          "unit": "none"
+          }
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 8,
-        "x": 8,
+        "x": 0,
         "y": 0
       },
-      "id": 17,
+      "id": 1,
       "options": {
         "legend": {
           "calcs": [],
@@ -210,7 +99,6 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "9.2.5",
       "targets": [
         {
           "datasource": {
@@ -218,13 +106,13 @@
             "uid": "RsY6af14k"
           },
           "editorMode": "builder",
-          "expr": "Coloradio_GPIOs_status{gpioName=\"SD1 Master Alarm\"}",
+          "expr": "Coloradio_Streams_volume{streamName=\"https://streaming.fueralle.org/coloradio_48.aac\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "SD1 Main Alarm",
+      "title": "Stream Volume Internet (dB)",
       "type": "timeseries"
     },
     {
@@ -232,91 +120,7 @@
         "type": "prometheus",
         "uid": "RsY6af14k"
       },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "decimals": 0,
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "dark-green",
-                  "index": 1,
-                  "text": "On-Air"
-                },
-                "1": {
-                  "color": "dark-red",
-                  "index": 0,
-                  "text": "Silence"
-                }
-              },
-              "type": "value"
-            }
-          ],
-          "max": 1,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 8
-      },
-      "id": 18,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "9.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "RsY6af14k"
-          },
-          "editorMode": "builder",
-          "expr": "Coloradio_GPIOs_status{gpioName=\"SD1 Aux Alarm\"}",
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "SD1 Aux Alarm",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "RsY6af14k"
-      },
+      "description": "Stream Volume of coloRadio DAB+ Contribution Stream A in dB",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -352,50 +156,30 @@
               "mode": "off"
             }
           },
-          "decimals": 0,
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "dark-green",
-                  "index": 1,
-                  "text": "On-Air"
-                },
-                "1": {
-                  "color": "dark-red",
-                  "index": 0,
-                  "text": "Silence"
-                }
-              },
-              "type": "value"
-            }
-          ],
-          "max": 1,
-          "min": 0,
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "dark-red",
                 "value": null
               },
               {
-                "color": "red",
-                "value": 1
+                "color": "dark-green",
+                "value": -50
               }
             ]
-          },
-          "unit": "none"
+          }
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 8,
-        "x": 8,
-        "y": 8
+        "x": 0,
+        "y": 7
       },
-      "id": 19,
+      "id": 4,
       "options": {
         "legend": {
           "calcs": [],
@@ -408,7 +192,6 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "9.2.5",
       "targets": [
         {
           "datasource": {
@@ -416,17 +199,110 @@
             "uid": "RsY6af14k"
           },
           "editorMode": "builder",
-          "expr": "Coloradio_GPIOs_status{gpioName=\"SD1 Aux Alarm\"}",
+          "expr": "Coloradio_Streams_volume{streamName=\"http://streamer-a.intern.coloradio.de:8000/coloradio-a.mp3\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "SD1 Aux Alarm",
+      "title": "Stream Volume DAB+ Contrib A (dB)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "RsY6af14k"
+      },
+      "description": "Stream Volume of coloRadio DAB+ Contribution Stream B in dB",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-red",
+                "value": null
+              },
+              {
+                "color": "dark-green",
+                "value": -50
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 14
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RsY6af14k"
+          },
+          "editorMode": "builder",
+          "expr": "Coloradio_Streams_volume{streamName=\"http://streamer-b.intern.coloradio.de:8000/coloradio-b.mp3\"}",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Stream Volume DAB+ Contrib B(dB)",
       "type": "timeseries"
     }
   ],
-  "refresh": "5s",
+  "refresh": "",
   "schemaVersion": 38,
   "style": "dark",
   "tags": [],
@@ -434,13 +310,13 @@
     "list": []
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Coloradio - Status Detail",
-  "uid": "c343ea18-0b9e-4ad9-af52-81866497bd0f",
-  "version": 3,
+  "title": "coloRadio - Stream Volume Details",
+  "uid": "e20f5332-3027-404b-a55e-bb1400afa6e3",
+  "version": 12,
   "weekStart": ""
 }
