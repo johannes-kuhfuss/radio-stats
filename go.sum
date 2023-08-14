@@ -38,8 +38,8 @@ github.com/golang/protobuf v1.5.3/go.mod h1:XVQd3VNwM+JqD3oG2Ue2ip4fOMUkwXdXDdiu
 github.com/google/go-cmp v0.5.5/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/go-cmp v0.5.9 h1:O2Tfq5qg4qc4AmwVlvv0oLiVAGB7enBSJ2x2DqQFi38=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
-github.com/johannes-kuhfuss/services_utils v1.0.13 h1:3Yb79x9YGNOPISHDO8ado8H9ACimlfXFLRXgto2DLNk=
-github.com/johannes-kuhfuss/services_utils v1.0.13/go.mod h1:+aYfsmDePsc1InUGTQfsgBqY26WLmm9G+3ciNPGuqnI=
+github.com/johannes-kuhfuss/services_utils v1.0.14 h1:+OlyE6v+zZt7S5PAe00fW9LV2/QaU/ElQjIGrV+jLy4=
+github.com/johannes-kuhfuss/services_utils v1.0.14/go.mod h1:h1Jw9J3c4rVNLTvrMHzRG12Pjh56ZwaUq0+ZKiCORs0=
 github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
 github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
