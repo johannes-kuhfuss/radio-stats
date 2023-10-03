@@ -60,6 +60,7 @@ func Test_updateMetrics_UpdatesMetrics(t *testing.T) {
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
+	volService.Cfg.RunTime.StreamVolumes = make(map[string]float64)
 	volService.Cfg.Metrics.StreamVolume = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "Coloradio",
 		Subsystem: "Streams",
@@ -69,8 +70,8 @@ func Test_updateMetrics_UpdatesMetrics(t *testing.T) {
 		"streamName",
 	})
 
-	updateVolMetrics(lines, volService, "")
-	assert.EqualValues(t, -0.3, volService.Cfg.RunTime.StreamVolumes)
+	updateVolMetrics(lines, volService, "https://streaming.fueralle.org/coloradio_48.aac")
+	assert.EqualValues(t, -0.3, volService.Cfg.RunTime.StreamVolumes["https://streaming.fueralle.org/coloradio_48.aac"])
 }
 
 func Test_ListenRun_UpdateCounts(t *testing.T) {
