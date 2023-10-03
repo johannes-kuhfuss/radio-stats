@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/johannes-kuhfuss/radio-stats/config"
@@ -20,6 +21,10 @@ type StreamVolDetectService interface {
 type DefaultStreamVolDetectService struct {
 	Cfg *config.AppConfig
 }
+
+var (
+	mu sync.Mutex
+)
 
 func NewStreamVolDetectService(cfg *config.AppConfig) DefaultStreamVolDetectService {
 	return DefaultStreamVolDetectService{
@@ -40,15 +45,17 @@ func (s DefaultStreamVolDetectService) Listen() {
 
 	for s.Cfg.RunTime.RunListen {
 		for _, streamUrl := range s.Cfg.StreamVolDetect.Urls {
-			ListenRun(s, streamUrl)
+			go ListenRun(s, streamUrl)
 		}
 		time.Sleep(time.Duration(s.Cfg.StreamVolDetect.IntervalSec) * time.Second)
 	}
 }
 
 func ListenRun(s DefaultStreamVolDetectService, streamUrl string) {
+	mu.Lock()
 	s.Cfg.RunTime.StreamVolDetectCount++
 	s.Cfg.Metrics.StreamVolDetectCount.Inc()
+	mu.Unlock()
 	lines := runFfmpeg(s, streamUrl)
 	if lines != nil {
 		updateVolMetrics(lines, s, streamUrl)
