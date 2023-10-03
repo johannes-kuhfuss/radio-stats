@@ -23,17 +23,17 @@ import (
 )
 
 var (
-	cfg                 config.AppConfig
-	server              http.Server
-	appEnd              chan os.Signal
-	ctx                 context.Context
-	cancel              context.CancelFunc
-	statsUiHandler      handlers.StatsUiHandler
-	gpioSwitchHandler   handlers.GpioSwitchHandler
-	streamScrapeService service.DefaultStreamScrapeService
-	gpioPollService     service.DefaultGpioPollService
-	gpioSwitchService   service.DefaultGpioSwitchService
-	streamDetectService service.StreamVolDetectService
+	cfg                    config.AppConfig
+	server                 http.Server
+	appEnd                 chan os.Signal
+	ctx                    context.Context
+	cancel                 context.CancelFunc
+	statsUiHandler         handlers.StatsUiHandler
+	gpioSwitchHandler      handlers.GpioSwitchHandler
+	streamScrapeService    service.DefaultStreamScrapeService
+	gpioPollService        service.DefaultGpioPollService
+	gpioSwitchService      service.DefaultGpioSwitchService
+	streamVolDetectService service.StreamVolDetectService
 )
 
 func StartApp() {
@@ -127,7 +127,7 @@ func wireApp() {
 	gpioPollService = service.NewGpioPollService(&cfg)
 	gpioSwitchService = service.NewGpioSwitchService(&cfg)
 	gpioSwitchHandler = handlers.NewGpioSwitchHandler(&cfg, gpioSwitchService)
-	streamDetectService = service.NewStreamVolDetectService(&cfg)
+	streamVolDetectService = service.NewStreamVolDetectService(&cfg)
 }
 
 func mapUrls() {
@@ -171,7 +171,7 @@ func startGpioPolling() {
 }
 
 func startStreamVolumeDetect() {
-	streamDetectService.Listen()
+	streamVolDetectService.Listen()
 }
 
 func cleanUp() {

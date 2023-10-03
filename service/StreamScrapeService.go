@@ -42,7 +42,7 @@ func InitStreamHttp() {
 	}
 	httpStreamClient = http.Client{
 		Transport: &httpStreamTr,
-		Timeout: 5 * time.Second,
+		Timeout:   5 * time.Second,
 	}
 }
 
@@ -55,7 +55,7 @@ func (s DefaultStreamScrapeService) Scrape() {
 		s.Cfg.RunTime.RunScrape = true
 	}
 
-	for s.Cfg.RunTime.RunScrape == true {
+	for s.Cfg.RunTime.RunScrape {
 		ScrapeRun(s)
 		time.Sleep(time.Duration(s.Cfg.StreamScrape.IntervalSec) * time.Second)
 	}

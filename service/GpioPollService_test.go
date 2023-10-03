@@ -15,10 +15,9 @@ import (
 )
 
 var (
-	gpioCfg      config.AppConfig
-	gpioRecorder *httptest.ResponseRecorder
-	gpioService  DefaultGpioPollService
-	server       *httptest.Server
+	gpioCfg     config.AppConfig
+	gpioService DefaultGpioPollService
+	server      *httptest.Server
 )
 
 func setupGpioTest(retError bool, setCookie bool, bodyData string) func() {
@@ -37,7 +36,7 @@ func setupGpioTest(retError bool, setCookie bool, bodyData string) func() {
 		if retError {
 			w.WriteHeader(404)
 		} else {
-			fmt.Fprintf(w, bodyData)
+			fmt.Fprint(w, bodyData)
 		}
 
 	}))

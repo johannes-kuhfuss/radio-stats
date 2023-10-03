@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"bytes"
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -37,11 +39,10 @@ type ConfigResp struct {
 		State  string
 	}
 	GpioOuts                      []string
-	StreamVolDetectionUrl         string
 	StreamVolDetectionIntervalSec string
 	StreamVolDetectionDuration    string
 	StreamVolDetectionCount       string
-	StreamVolume                  string
+	StreamVolumes                 string
 }
 
 func stateBoolToString(state bool) string {
@@ -58,6 +59,14 @@ func invertBoolToString(state bool) string {
 	} else {
 		return "Non inverted"
 	}
+}
+
+func volumeString(volumes map[string]float64) string {
+	b := new(bytes.Buffer)
+	for sUrl, vol := range volumes {
+		fmt.Fprintf(b, "%s=%s # ", sUrl, strconv.FormatFloat(vol, 'f', -1, 64))
+	}
+	return b.String()
 }
 
 func GetConfig(cfg *config.AppConfig) ConfigResp {
@@ -77,11 +86,10 @@ func GetConfig(cfg *config.AppConfig) ConfigResp {
 		GpioHost:                      cfg.Gpio.Host,
 		GpioConnected:                 strconv.FormatBool(cfg.RunTime.GpioConnected),
 		GpioPollIntervalSec:           strconv.Itoa(cfg.Gpio.IntervalSec),
-		StreamVolDetectionUrl:         cfg.StreamVolDetect.Url,
 		StreamVolDetectionIntervalSec: strconv.Itoa(cfg.StreamVolDetect.IntervalSec),
 		StreamVolDetectionDuration:    strconv.Itoa(cfg.StreamVolDetect.Duration),
 		StreamVolDetectionCount:       strconv.FormatUint(cfg.RunTime.StreamVolDetectCount, 10),
-		StreamVolume:                  strconv.FormatFloat(cfg.RunTime.StreamVolume, 'f', -1, 64),
+		StreamVolumes:                 volumeString(cfg.RunTime.StreamVolumes),
 	}
 	if cfg.Server.Host == "" {
 		resp.ServerHost = "localhost"

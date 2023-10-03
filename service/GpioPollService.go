@@ -24,7 +24,6 @@ type DefaultGpioPollService struct {
 }
 
 var (
-	runPoll            bool = false
 	httpGpioPollTr     http.Transport
 	httpGpioPollClient http.Client
 	cookie             *http.Cookie
@@ -89,7 +88,7 @@ func (s DefaultGpioPollService) Poll() {
 		s.Cfg.RunTime.RunPoll = true
 	}
 
-	for s.Cfg.RunTime.RunPoll == true {
+	for s.Cfg.RunTime.RunPoll {
 		if loggedIn {
 			err := PollRun(s)
 			if err != nil {
@@ -180,7 +179,7 @@ func updateGpioMetrics(cfg *config.AppConfig) {
 }
 
 func boolToInt(state bool) int {
-	if state == true {
+	if state {
 		return 1
 	} else {
 		return 0

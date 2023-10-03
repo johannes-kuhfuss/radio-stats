@@ -34,7 +34,7 @@ func Test_runFfmpeg_ErrorExec_ReturnsNil(t *testing.T) {
 	volService = NewStreamVolDetectService(&volCfg)
 	volService.Cfg.StreamVolDetect.FfmpegExe = "i-dont-exist"
 
-	result := runFfmpeg(volService)
+	result := runFfmpeg(volService, "")
 
 	assert.Nil(t, result)
 }
@@ -42,10 +42,10 @@ func Test_runFfmpeg_ErrorExec_ReturnsNil(t *testing.T) {
 func Test_runFfmpeg_LocalExec_ReturnsResult(t *testing.T) {
 	volService = NewStreamVolDetectService(&volCfg)
 	volService.Cfg.StreamVolDetect.FfmpegExe = "../prog/ffmpeg.exe"
-	volService.Cfg.StreamVolDetect.Url = "https://streaming.fueralle.org/coloradio_48.aac"
+	volService.Cfg.StreamVolDetect.Urls = []string{"https://streaming.fueralle.org/coloradio_48.aac"}
 	volService.Cfg.StreamVolDetect.Duration = 2
 
-	result := runFfmpeg(volService)
+	result := runFfmpeg(volService, volService.Cfg.StreamVolDetect.Urls[0])
 
 	assert.NotNil(t, result)
 	assert.Contains(t, result[0], "ffmpeg version")
@@ -69,8 +69,8 @@ func Test_updateMetrics_UpdatesMetrics(t *testing.T) {
 		"streamName",
 	})
 
-	updateVolMetrics(lines, volService)
-	assert.EqualValues(t, -0.3, volService.Cfg.RunTime.StreamVolume)
+	updateVolMetrics(lines, volService, "")
+	assert.EqualValues(t, -0.3, volService.Cfg.RunTime.StreamVolumes)
 }
 
 func Test_ListenRun_UpdateCounts(t *testing.T) {
@@ -82,7 +82,7 @@ func Test_ListenRun_UpdateCounts(t *testing.T) {
 		Help:      "Number of times volume level was detected on stream",
 	})
 
-	ListenRun(volService)
+	ListenRun(volService, "")
 
 	assert.EqualValues(t, 1, volService.Cfg.RunTime.StreamVolDetectCount)
 }

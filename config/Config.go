@@ -75,10 +75,10 @@ type AppConfig struct {
 		ExpectedServerName string `envconfig:"EXPECTED_SERVER_NAME" default:"coloRadio"`
 	}
 	StreamVolDetect struct {
-		Url         string `envconfig:"STREAM_VOLDETECT_URL"`
-		IntervalSec int    `envconfig:"STREAM_VOLDETECT_INTERVAL_SEC" default:"5"`
-		Duration    int    `envconfig:"STREAM_VOLDETECT_DURATION" default:"2"`
-		FfmpegExe   string `envconfig:"STREAM_VOLDETECT_FFMPEG" default:"./prog/ffmpeg.exe"`
+		Urls        []string `envconfig:"STREAM_VOLDETECT_URLS"`
+		IntervalSec int      `envconfig:"STREAM_VOLDETECT_INTERVAL_SEC" default:"5"`
+		Duration    int      `envconfig:"STREAM_VOLDETECT_DURATION" default:"2"`
+		FfmpegExe   string   `envconfig:"STREAM_VOLDETECT_FFMPEG" default:"./prog/ffmpeg.exe"`
 	}
 	Gpio struct {
 		Host        string           `envconfig:"GPIO_HOST"`
@@ -101,7 +101,7 @@ type AppConfig struct {
 		StartDate            time.Time
 		StreamScrapeCount    uint64
 		StreamVolDetectCount uint64
-		StreamVolume         float64
+		StreamVolumes        map[string]float64
 		RunScrape            bool
 		RunPoll              bool
 		GpioConnected        bool
@@ -125,6 +125,7 @@ func InitConfig(file string, config *AppConfig) api_error.ApiErr {
 	config.RunTime.StreamScrapeCount = 0
 	config.RunTime.RunScrape = false
 	config.RunTime.RunListen = false
+	config.RunTime.StreamVolumes = make(map[string]float64)
 	logger.Info("Done initalizing configuration")
 	return nil
 }

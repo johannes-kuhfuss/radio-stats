@@ -69,7 +69,7 @@ func (s DefaultGpioSwitchService) Switch(xPoint string) (err api_error.ApiErr) {
 
 	// Toggle twice
 	req, _ := http.NewRequest("GET", urlString, nil)
-	resp, reqErr := httpGpioSwitchClient.Do(req)
+	_, reqErr := httpGpioSwitchClient.Do(req)
 	if reqErr != nil {
 		msg := "Error while switching xpoint (1/2)"
 		logger.Error(msg, reqErr)
@@ -78,7 +78,7 @@ func (s DefaultGpioSwitchService) Switch(xPoint string) (err api_error.ApiErr) {
 
 	time.Sleep(250 * time.Millisecond)
 
-	resp, reqErr = httpGpioSwitchClient.Do(req)
+	resp, reqErr := httpGpioSwitchClient.Do(req)
 	if reqErr != nil {
 		msg := "Error while switching xpoint (2/2)"
 		logger.Error(msg, reqErr)
