@@ -23,7 +23,8 @@ type DefaultStreamVolDetectService struct {
 }
 
 var (
-	mu sync.Mutex
+	mu             sync.Mutex
+	deltaZeroCount int
 )
 
 func NewStreamVolDetectService(cfg *config.AppConfig) DefaultStreamVolDetectService {
@@ -70,6 +71,16 @@ func updateVolMetrics(lines []string, s DefaultStreamVolDetectService, streamUrl
 			for _, num := range allNums {
 				f, err := strconv.ParseFloat(num, 64)
 				if err == nil {
+					delta := s.Cfg.RunTime.StreamVolumes[streamUrl] - f
+					if delta == 0.0 {
+						deltaZeroCount++
+					} else {
+						deltaZeroCount = 0
+					}
+					if deltaZeroCount > 3 {
+						logger.Warn(fmt.Sprintf("Volume has remained the same for %v cycles!", deltaZeroCount))
+					}
+					logger.Info(fmt.Sprintf("Delta: %.2f", delta))
 					s.Cfg.RunTime.StreamVolumes[streamUrl] = f
 					s.Cfg.Metrics.StreamVolume.WithLabelValues(streamUrl).Set(f)
 				}

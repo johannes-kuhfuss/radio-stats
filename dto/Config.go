@@ -63,8 +63,13 @@ func invertBoolToString(state bool) string {
 
 func volumeString(volumes map[string]float64) string {
 	b := new(bytes.Buffer)
-	for sUrl, vol := range volumes {
-		fmt.Fprintf(b, "%s=%s # ", sUrl, strconv.FormatFloat(vol, 'f', -1, 64))
+	sUrls := make([]string, 0, len(volumes))
+	for k := range volumes {
+		sUrls = append(sUrls, k)
+	}
+	sort.Strings(sUrls)
+	for _, sUrl := range sUrls {
+		fmt.Fprintf(b, "%s=%s # ", sUrl, strconv.FormatFloat(volumes[sUrl], 'f', -1, 64))
 	}
 	return b.String()
 }
