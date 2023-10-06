@@ -80,7 +80,6 @@ func updateVolMetrics(lines []string, s DefaultStreamVolDetectService, streamUrl
 					if deltaZeroCount > 3 {
 						logger.Warn(fmt.Sprintf("Volume has remained the same for %v cycles!", deltaZeroCount))
 					}
-					logger.Info(fmt.Sprintf("Delta: %.2f", delta))
 					s.Cfg.RunTime.StreamVolumes[streamUrl] = f
 					s.Cfg.Metrics.StreamVolume.WithLabelValues(streamUrl).Set(f)
 				}
