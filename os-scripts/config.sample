@@ -33,8 +33,8 @@ STREAM_SCRAPE_URL="https://streaming.fueralle.org/status-json.xsl"
 ## EXPECTED_SERVER_NAME=""
 
 # Stream Volume Detect Configuration
-# Url of stream to listen to - no default *** must set ***
-STREAM_VOLDETECT_URL="https://streaming.fueralle.org/coloradio_48.aac"
+# Url of stream to listen to - no default, comma-separated *** must set ***
+STREAM_VOLDETECT_URLS="https://streaming.fueralle.org/coloradio_48.aac"
 # Volume Detection Interval in seconds - defaults to "5"
 ##STREAM_VOLDETECT_INTERVAL_SEC=""
 # Volume Detection Listening Duration - defaults to "2"
