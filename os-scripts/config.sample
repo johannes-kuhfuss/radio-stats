@@ -39,7 +39,7 @@ STREAM_VOLDETECT_URLS="https://streaming.fueralle.org/coloradio_48.aac"
 ##STREAM_VOLDETECT_INTERVAL_SEC=""
 # Volume Detection Listening Duration - defaults to "2"
 ##STREAM_VOLDETECT_DURATION=""
-# Path to ffmpeg - defaults to "./prog/ffmpeg.exe"
+# Path to ffmpeg - defaults to "/usr/bin/ffmpeg"
 ##STREAM_VOLDETECT_FFMPEG=""
 
 # GPIO Configuration
