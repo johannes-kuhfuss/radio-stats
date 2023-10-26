@@ -32,8 +32,6 @@ var (
 
 func NewGpioPollService(cfg *config.AppConfig) DefaultGpioPollService {
 	InitGpioPollHttp()
-	loggedIn = LoginToGpio(cfg)
-	cfg.RunTime.GpioConnected = loggedIn
 	return DefaultGpioPollService{
 		Cfg: cfg,
 	}
@@ -84,6 +82,8 @@ func (s DefaultGpioPollService) Poll() {
 		logger.Warn("No GPIO poll host given. Not polling GPIOs")
 		s.Cfg.RunTime.RunPoll = false
 	} else {
+		loggedIn = LoginToGpio(s.Cfg)
+		s.Cfg.RunTime.GpioConnected = loggedIn
 		logger.Info(fmt.Sprintf("Starting to poll GPIOs from host %v", s.Cfg.Gpio.Host))
 		s.Cfg.RunTime.RunPoll = true
 	}

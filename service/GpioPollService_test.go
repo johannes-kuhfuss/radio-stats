@@ -91,7 +91,6 @@ func Test_NewGpioPollService(t *testing.T) {
 
 	gpioService = NewGpioPollService(&gpioCfg)
 
-	assert.EqualValues(t, true, loggedIn)
 	assert.EqualValues(t, gpioCfg, *gpioService.Cfg)
 }
 
