@@ -134,9 +134,7 @@ func mapUrls() {
 	cfg.RunTime.Router.GET("/", statsUiHandler.StatusPage)
 	cfg.RunTime.Router.GET("/about", statsUiHandler.AboutPage)
 	cfg.RunTime.Router.GET("/metrics", gin.WrapH(promhttp.Handler()))
-	authorized := cfg.RunTime.Router.Group("/", gin.BasicAuth(gin.Accounts{
-		"admin": cfg.Server.AdminPassword,
-	}))
+	authorized := cfg.RunTime.Router.Group("/", basicAuth(cfg.Server.AdminUserName, cfg.Server.AdminPasswordHash))
 	authorized.GET("/switch", statsUiHandler.SwitchPage)
 	cfg.RunTime.Router.POST("/switch", gpioSwitchHandler.SwitchXpoint)
 }

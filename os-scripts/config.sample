@@ -13,8 +13,10 @@
 ##KEY_FILE=""
 # Time in seconds to wait for graceful shutdown - defaults to "10"
 ##GRACEFUL_SHUTDOWN_TIME=""
-# Admin password for basic auth protected resources - defaults to "admini"
-ADMIN_PASSWORD=""
+# Username for admin access, defaults to "admin"
+##ADMIN_USER_NAME=""
+# Admin password bcrypt hash for basic auth protected resources; you must escape all dollar signs ("$") with a blackslash ("\")
+##ADMIN_PASSWORD_HASH=""
 
 # Gin-Gonic Configuration
 # Gin-Gonic mode - defaults to "release" - Options: "Debug"
