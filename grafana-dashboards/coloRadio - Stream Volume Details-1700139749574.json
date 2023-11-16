@@ -18,15 +18,12 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 5,
+  "id": 6,
   "links": [],
   "liveNow": false,
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "RsY6af14k"
-      },
+      "datasource": {},
       "description": "Stream Volume of coloRadio Internet Stream in dB",
       "fieldConfig": {
         "defaults": {
@@ -34,6 +31,7 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -47,6 +45,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -64,6 +63,8 @@
             }
           },
           "mappings": [],
+          "max": -75,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -76,7 +77,8 @@
                 "value": -50
               }
             ]
-          }
+          },
+          "unit": "dB"
         },
         "overrides": []
       },
@@ -105,21 +107,22 @@
             "type": "prometheus",
             "uid": "RsY6af14k"
           },
+          "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "Coloradio_Streams_volume{streamName=\"https://streaming.fueralle.org/coloradio_48.aac\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
           "legendFormat": "__auto",
           "range": true,
-          "refId": "A"
+          "refId": "A",
+          "useBackend": false
         }
       ],
       "title": "Stream Volume Internet (dB)",
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "RsY6af14k"
-      },
+      "datasource": {},
       "description": "Stream Volume of coloRadio DAB+ Contribution Stream A in dB",
       "fieldConfig": {
         "defaults": {
@@ -127,6 +130,7 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -140,6 +144,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -157,6 +162,8 @@
             }
           },
           "mappings": [],
+          "max": -75,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -169,7 +176,8 @@
                 "value": -50
               }
             ]
-          }
+          },
+          "unit": "dB"
         },
         "overrides": []
       },
@@ -198,21 +206,22 @@
             "type": "prometheus",
             "uid": "RsY6af14k"
           },
+          "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "Coloradio_Streams_volume{streamName=\"http://streamer-a.intern.coloradio.de:8000/coloradio-a.mp3\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
           "legendFormat": "__auto",
           "range": true,
-          "refId": "A"
+          "refId": "A",
+          "useBackend": false
         }
       ],
       "title": "Stream Volume DAB+ Contrib A (dB)",
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "RsY6af14k"
-      },
+      "datasource": {},
       "description": "Stream Volume of coloRadio DAB+ Contribution Stream B in dB",
       "fieldConfig": {
         "defaults": {
@@ -220,6 +229,7 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -233,6 +243,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -250,6 +261,8 @@
             }
           },
           "mappings": [],
+          "max": -75,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -262,7 +275,8 @@
                 "value": -50
               }
             ]
-          }
+          },
+          "unit": "dB"
         },
         "overrides": []
       },
@@ -291,205 +305,23 @@
             "type": "prometheus",
             "uid": "RsY6af14k"
           },
+          "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "Coloradio_Streams_volume{streamName=\"http://streamer-b.intern.coloradio.de:8000/coloradio-b.mp3\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
           "legendFormat": "__auto",
           "range": true,
-          "refId": "A"
+          "refId": "A",
+          "useBackend": false
         }
       ],
       "title": "Stream Volume DAB+ Contrib B(dB)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "RsY6af14k"
-      },
-      "description": "Stream Volume of coloRadio FM auf 99.3",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "dark-red",
-                "value": null
-              },
-              {
-                "color": "dark-green",
-                "value": -50
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 18,
-        "x": 0,
-        "y": 22
-      },
-      "id": 5,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "RsY6af14k"
-          },
-          "editorMode": "builder",
-          "expr": "Coloradio_Streams_volume{streamName=\"http://ukw.hoerradar.de:8000/DESNFTA001APO09930\"}",
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Stream Volume FM 99.3",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "RsY6af14k"
-      },
-      "description": "Stream Volume of coloRadio FM auf 98.4",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "dark-red"
-              },
-              {
-                "color": "dark-green",
-                "value": -50
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 18,
-        "x": 0,
-        "y": 29
-      },
-      "id": 6,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "RsY6af14k"
-          },
-          "editorMode": "builder",
-          "expr": "Coloradio_Streams_volume{streamName=\"http://ukw.hoerradar.de:8000/DESNDRS002APO09840\"}",
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Stream Volume FM 98.4",
       "type": "timeseries"
     }
   ],
   "refresh": "",
   "schemaVersion": 38,
-  "style": "dark",
   "tags": [],
   "templating": {
     "list": []
@@ -502,6 +334,6 @@
   "timezone": "",
   "title": "coloRadio - Stream Volume Details",
   "uid": "e20f5332-3027-404b-a55e-bb1400afa6e3",
-  "version": 16,
+  "version": 4,
   "weekStart": ""
 }

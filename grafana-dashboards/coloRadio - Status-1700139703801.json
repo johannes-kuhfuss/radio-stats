@@ -60,6 +60,7 @@
           "locale": "",
           "showDate": true
         },
+        "fontMono": false,
         "mode": "time",
         "refresh": "sec",
         "timeSettings": {
@@ -74,15 +75,12 @@
           "zoneFormat": "offsetAbbv"
         }
       },
-      "pluginVersion": "2.1.2",
+      "pluginVersion": "2.1.3",
       "title": "Time",
       "type": "grafana-clock-panel"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "RsY6af14k"
-      },
+      "datasource": {},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -146,34 +144,36 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "9.5.2",
+      "pluginVersion": "10.2.0",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "RsY6af14k"
           },
+          "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "Coloradio_GPIOs_status{gpioName=\"SD1 Master Alarm\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
           "legendFormat": "__auto",
           "range": true,
-          "refId": "A"
+          "refId": "A",
+          "useBackend": false
         }
       ],
       "title": "Silence Detect",
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "RsY6af14k"
-      },
+      "datasource": {},
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -187,6 +187,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -266,21 +267,22 @@
             "type": "prometheus",
             "uid": "RsY6af14k"
           },
+          "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "Coloradio_GPIOs_status{gpioName=\"SD1 Master Alarm\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
           "legendFormat": "__auto",
           "range": true,
-          "refId": "A"
+          "refId": "A",
+          "useBackend": false
         }
       ],
       "title": "Silence Detect",
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "RsY6af14k"
-      },
+      "datasource": {},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -310,6 +312,8 @@
       },
       "id": 6,
       "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
@@ -321,18 +325,22 @@
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "9.5.2",
+      "pluginVersion": "10.2.0",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "nCrVBjhVk"
           },
+          "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "Coloradio_Streams_listener_count",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
           "legendFormat": "__auto",
           "range": true,
-          "refId": "A"
+          "refId": "A",
+          "useBackend": false
         }
       ],
       "title": "All streams",
@@ -343,10 +351,11 @@
             "mode": "reduceRow",
             "reduce": {
               "include": [
-                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"localhost:8080\", job=\"Coloradio Stats\", streamName=\"AAC - 48kBit/s\"}",
-                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"localhost:8080\", job=\"Coloradio Stats\", streamName=\"MP3 - 160kBit/s\"}",
-                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"localhost:8080\", job=\"Coloradio Stats\", streamName=\"MP3 - 56kBit/s\"}",
-                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"localhost:8080\", job=\"Coloradio Stats\", streamName=\"Ogg - 160kBit/s\"}"
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"radio-stats:8080\", job=\"Coloradio Stats\", streamName=\"AAC - 48kBit/s\"}",
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"radio-stats:8080\", job=\"Coloradio Stats\", streamName=\"Contribution Stream\"}",
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"radio-stats:8080\", job=\"Coloradio Stats\", streamName=\"MP3 - 160kBit/s\"}",
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"radio-stats:8080\", job=\"Coloradio Stats\", streamName=\"MP3 - 56kBit/s\"}",
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"radio-stats:8080\", job=\"Coloradio Stats\", streamName=\"Ogg - 160kBit/s\"}"
               ],
               "reducer": "sum"
             },
@@ -357,16 +366,14 @@
       "type": "gauge"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "RsY6af14k"
-      },
+      "datasource": {},
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -380,6 +387,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -437,11 +445,15 @@
             "type": "prometheus",
             "uid": "nCrVBjhVk"
           },
+          "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "Coloradio_Streams_listener_count",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
           "legendFormat": "__auto",
           "range": true,
-          "refId": "A"
+          "refId": "A",
+          "useBackend": false
         }
       ],
       "title": "All streams",
@@ -452,10 +464,11 @@
             "mode": "reduceRow",
             "reduce": {
               "include": [
-                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"localhost:8080\", job=\"Coloradio Stats\", streamName=\"AAC - 48kBit/s\"}",
-                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"localhost:8080\", job=\"Coloradio Stats\", streamName=\"MP3 - 160kBit/s\"}",
-                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"localhost:8080\", job=\"Coloradio Stats\", streamName=\"MP3 - 56kBit/s\"}",
-                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"localhost:8080\", job=\"Coloradio Stats\", streamName=\"Ogg - 160kBit/s\"}"
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"radio-stats:8080\", job=\"Coloradio Stats\", streamName=\"AAC - 48kBit/s\"}",
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"radio-stats:8080\", job=\"Coloradio Stats\", streamName=\"Contribution Stream\"}",
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"radio-stats:8080\", job=\"Coloradio Stats\", streamName=\"MP3 - 160kBit/s\"}",
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"radio-stats:8080\", job=\"Coloradio Stats\", streamName=\"MP3 - 56kBit/s\"}",
+                "{__name__=\"Coloradio_Streams_listener_count\", instance=\"radio-stats:8080\", job=\"Coloradio Stats\", streamName=\"Ogg - 160kBit/s\"}"
               ],
               "reducer": "sum"
             },
@@ -466,10 +479,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "RsY6af14k"
-      },
+      "datasource": {},
       "description": "Stream Volume of Coloradio Stream in dB",
       "fieldConfig": {
         "defaults": {
@@ -477,6 +487,7 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -490,6 +501,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -507,6 +519,8 @@
             }
           },
           "mappings": [],
+          "max": -77,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -519,7 +533,8 @@
                 "value": -50
               }
             ]
-          }
+          },
+          "unit": "dB"
         },
         "overrides": []
       },
@@ -548,11 +563,15 @@
             "type": "prometheus",
             "uid": "RsY6af14k"
           },
+          "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "Coloradio_Streams_volume{streamName=\"https://streaming.fueralle.org/coloradio_48.aac\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
           "legendFormat": "__auto",
           "range": true,
-          "refId": "A"
+          "refId": "A",
+          "useBackend": false
         }
       ],
       "title": "Stream Volume (dB)",
@@ -561,7 +580,6 @@
   ],
   "refresh": "5s",
   "schemaVersion": 38,
-  "style": "dark",
   "tags": [],
   "templating": {
     "list": []
@@ -574,6 +592,6 @@
   "timezone": "",
   "title": "coloRadio - Status",
   "uid": "Ve1aisJVk",
-  "version": 13,
+  "version": 5,
   "weekStart": ""
 }
