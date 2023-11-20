@@ -16,7 +16,7 @@ var (
 
 func checkErr(err error) {
 	if err != nil {
-		panic(fmt.Sprintf("could not execute test preparation.. Error: %s", err))
+		panic(fmt.Sprintf("could not execute test preparation. Error: %s", err))
 	}
 }
 
