@@ -56,12 +56,12 @@ func (s DefaultStreamScrapeService) Scrape() {
 	}
 
 	for s.Cfg.RunTime.RunScrape {
-		ScrapeRun(s)
+		s.ScrapeRun()
 		time.Sleep(time.Duration(s.Cfg.StreamScrape.IntervalSec) * time.Second)
 	}
 }
 
-func ScrapeRun(s DefaultStreamScrapeService) {
+func (s DefaultStreamScrapeService) ScrapeRun() {
 	var streamData domain.IceCastStats
 	s.Cfg.RunTime.StreamScrapeCount++
 	s.Cfg.Metrics.StreamScrapeCount.Inc()
@@ -70,7 +70,7 @@ func ScrapeRun(s DefaultStreamScrapeService) {
 		sanitizedBody := sanitize(body)
 		streamData, err = unMarshall(sanitizedBody)
 		if err == nil {
-			streamCount := updateStreamMetrics(streamData, s)
+			streamCount := s.updateStreamMetrics(streamData)
 			if streamCount != s.Cfg.StreamScrape.NumExpected {
 				logger.Warn(fmt.Sprintf("Expected %v streams, but received %v", s.Cfg.StreamScrape.NumExpected, streamCount))
 			}
@@ -109,7 +109,7 @@ func unMarshall(sanitizedBody string) (domain.IceCastStats, error) {
 	return streamData, nil
 }
 
-func updateStreamMetrics(streamData domain.IceCastStats, s DefaultStreamScrapeService) int {
+func (s DefaultStreamScrapeService) updateStreamMetrics(streamData domain.IceCastStats) int {
 	streamCount := 0
 	for _, source := range streamData.Icestats.Source {
 		if source.ServerName == s.Cfg.StreamScrape.ExpectedServerName {

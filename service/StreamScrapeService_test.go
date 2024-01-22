@@ -157,7 +157,7 @@ func Test_ScrapeRun_LocalUrl_UpdatesMetrics(t *testing.T) {
 	prometheus.MustRegister(cfg.Metrics.StreamScrapeCount)
 
 	scrapeService = NewStreamScrapeService(&cfg)
-	ScrapeRun(scrapeService)
+	scrapeService.ScrapeRun()
 
 	assert.EqualValues(t, 1, cfg.RunTime.StreamScrapeCount)
 }

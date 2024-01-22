@@ -99,7 +99,7 @@ func Test_PollRun_NoData_ReturnsError(t *testing.T) {
 	defer teardown()
 	service := NewGpioPollService(&gpioCfg)
 
-	err := PollRun(service)
+	err := service.PollRun()
 
 	assert.NotNil(t, err)
 	assert.EqualValues(t, "EOF", err.Error())

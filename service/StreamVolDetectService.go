@@ -47,24 +47,28 @@ func (s DefaultStreamVolDetectService) Listen() {
 
 	for s.Cfg.RunTime.RunListen {
 		for _, streamUrl := range s.Cfg.StreamVolDetect.Urls {
-			go ListenRun(s, streamUrl)
+			go s.ListenRun(streamUrl)
 		}
 		time.Sleep(time.Duration(s.Cfg.StreamVolDetect.IntervalSec) * time.Second)
 	}
 }
 
-func ListenRun(s DefaultStreamVolDetectService, streamUrl string) {
+func (s DefaultStreamVolDetectService) ListenRun(streamUrl string) {
+	s.increaseDetectCount()
+	lines := s.runFfmpeg(streamUrl)
+	if lines != nil {
+		s.updateVolMetrics(lines, streamUrl)
+	}
+}
+
+func (s DefaultStreamVolDetectService) increaseDetectCount() {
 	mu.Lock()
 	s.Cfg.RunTime.StreamVolDetectCount++
 	s.Cfg.Metrics.StreamVolDetectCount.Inc()
 	mu.Unlock()
-	lines := runFfmpeg(s, streamUrl)
-	if lines != nil {
-		updateVolMetrics(lines, s, streamUrl)
-	}
 }
 
-func updateVolMetrics(lines []string, s DefaultStreamVolDetectService, streamUrl string) {
+func (s DefaultStreamVolDetectService) updateVolMetrics(lines []string, streamUrl string) {
 	for _, line := range lines {
 		if strings.Contains(line, "mean_volume") {
 			re := regexp.MustCompile(`[-]\d*[\.]\d`)
@@ -79,7 +83,7 @@ func updateVolMetrics(lines []string, s DefaultStreamVolDetectService, streamUrl
 						deltaZeroCount[streamUrl] = 0
 					}
 					if deltaZeroCount[streamUrl] > 3 {
-						logger.Warn(fmt.Sprintf("Volume has remained the same for %v cycles!", deltaZeroCount[streamUrl]))
+						logger.Warn(fmt.Sprintf("Volume for %v has remained the same for %v cycles!", streamUrl, deltaZeroCount[streamUrl]))
 					}
 					mu.Lock()
 					s.Cfg.RunTime.StreamVolumes[streamUrl] = f
@@ -91,7 +95,7 @@ func updateVolMetrics(lines []string, s DefaultStreamVolDetectService, streamUrl
 	}
 }
 
-func runFfmpeg(s DefaultStreamVolDetectService, streamUrl string) []string {
+func (s DefaultStreamVolDetectService) runFfmpeg(streamUrl string) []string {
 	ctx := context.Background()
 	timeout := time.Duration(s.Cfg.StreamVolDetect.Duration+5) * time.Second
 	ctx, cancel := context.WithTimeout(ctx, timeout)

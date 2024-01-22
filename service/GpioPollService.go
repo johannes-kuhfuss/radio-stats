@@ -90,7 +90,7 @@ func (s DefaultGpioPollService) Poll() {
 
 	for s.Cfg.RunTime.RunPoll {
 		if loggedIn {
-			err := PollRun(s)
+			err := s.PollRun()
 			if err != nil {
 				if err.Error() == "expected element type <devStat> but have <html>" {
 					logger.Warn("Unauthenticated. Trying to re-authenticate...")
@@ -106,7 +106,7 @@ func (s DefaultGpioPollService) Poll() {
 	}
 }
 
-func PollRun(s DefaultGpioPollService) error {
+func (s DefaultGpioPollService) PollRun() error {
 	pollUrl := url.URL{
 		Scheme: "http",
 		Host:   s.Cfg.Gpio.Host,
