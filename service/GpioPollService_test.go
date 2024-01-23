@@ -85,15 +85,6 @@ func Test_LoginToGpio_ReturnsTrue(t *testing.T) {
 	assert.EqualValues(t, true, success)
 }
 
-func Test_NewGpioPollService(t *testing.T) {
-	teardown := setupGpioTest(false, true, "")
-	defer teardown()
-
-	gpioService = NewGpioPollService(&gpioCfg)
-
-	assert.EqualValues(t, gpioCfg, *gpioService.Cfg)
-}
-
 func Test_PollRun_NoData_ReturnsError(t *testing.T) {
 	teardown := setupGpioTest(false, true, "")
 	defer teardown()

@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -102,12 +103,15 @@ type AppConfig struct {
 		StartDate            time.Time
 		StreamScrapeCount    uint64
 		StreamVolDetectCount uint64
-		StreamVolumes        map[string]float64
-		RunScrape            bool
-		RunPoll              bool
-		GpioConnected        bool
-		RunListen            bool
-		Gpios                []PinData
+		StreamVolumes        struct {
+			sync.Mutex
+			Vols map[string]float64
+		}
+		RunScrape     bool
+		RunPoll       bool
+		GpioConnected bool
+		RunListen     bool
+		Gpios         []PinData
 	}
 }
 
@@ -126,7 +130,7 @@ func InitConfig(file string, config *AppConfig) api_error.ApiErr {
 	config.RunTime.StreamScrapeCount = 0
 	config.RunTime.RunScrape = false
 	config.RunTime.RunListen = false
-	config.RunTime.StreamVolumes = make(map[string]float64)
+	config.RunTime.StreamVolumes.Vols = make(map[string]float64)
 	logger.Info("Done initalizing configuration")
 	return nil
 }

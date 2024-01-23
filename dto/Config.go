@@ -94,11 +94,13 @@ func GetConfig(cfg *config.AppConfig) ConfigResp {
 		StreamVolDetectionIntervalSec: strconv.Itoa(cfg.StreamVolDetect.IntervalSec),
 		StreamVolDetectionDuration:    strconv.Itoa(cfg.StreamVolDetect.Duration),
 		StreamVolDetectionCount:       strconv.FormatUint(cfg.RunTime.StreamVolDetectCount, 10),
-		StreamVolumes:                 volumeString(cfg.RunTime.StreamVolumes),
 	}
 	if cfg.Server.Host == "" {
 		resp.ServerHost = "localhost"
 	}
+	cfg.RunTime.StreamVolumes.Lock()
+	resp.StreamVolumes = volumeString(cfg.RunTime.StreamVolumes.Vols)
+	cfg.RunTime.StreamVolumes.Unlock()
 	for _, v := range cfg.RunTime.Gpios {
 		var pinData struct {
 			Id     string

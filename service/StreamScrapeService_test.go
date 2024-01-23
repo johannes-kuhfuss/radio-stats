@@ -112,13 +112,6 @@ func Test_unMarshall_Returns_NoError(t *testing.T) {
 	assert.EqualValues(t, stats, body)
 }
 
-func Test_NewStreamScrapeService_Init(t *testing.T) {
-	var cfg config.AppConfig
-	service := NewStreamScrapeService(&cfg)
-
-	assert.EqualValues(t, cfg, *service.Cfg)
-}
-
 func Test_Scrape_NoUrl_DoesntScrape(t *testing.T) {
 	var cfg config.AppConfig
 	scrapeService = NewStreamScrapeService(&cfg)

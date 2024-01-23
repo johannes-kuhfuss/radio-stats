@@ -2,3 +2,5 @@ Add to source control
 - script to add user, group, rights to access serial port (add to group dialout)
 
 Tests for Switch handler & service
+
+Make maps thread-safe

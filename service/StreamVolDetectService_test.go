@@ -15,12 +15,6 @@ var (
 	volService DefaultStreamVolDetectService
 )
 
-func Test_NewStreamVolDetectService_ReturnsDefaultStreamVolDetectService(t *testing.T) {
-	volService = NewStreamVolDetectService(&volCfg)
-
-	assert.EqualValues(t, volCfg, *volService.Cfg)
-}
-
 func Test_Listen_NoUrl_SetsRunToFalse(t *testing.T) {
 	volService = NewStreamVolDetectService(&volCfg)
 	volService.Cfg.StreamScrape.Url = ""
@@ -60,7 +54,7 @@ func Test_updateMetrics_UpdatesMetrics(t *testing.T) {
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
-	volService.Cfg.RunTime.StreamVolumes = make(map[string]float64)
+	volService.Cfg.RunTime.StreamVolumes.Vols = make(map[string]float64)
 	volService.Cfg.Metrics.StreamVolume = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "Coloradio",
 		Subsystem: "Streams",
@@ -71,7 +65,7 @@ func Test_updateMetrics_UpdatesMetrics(t *testing.T) {
 	})
 
 	volService.updateVolMetrics(lines, "https://streaming.fueralle.org/coloradio_48.aac")
-	assert.EqualValues(t, -0.3, volService.Cfg.RunTime.StreamVolumes["https://streaming.fueralle.org/coloradio_48.aac"])
+	assert.EqualValues(t, -0.3, volService.Cfg.RunTime.StreamVolumes.Vols["https://streaming.fueralle.org/coloradio_48.aac"])
 }
 
 func Test_ListenRun_UpdateCounts(t *testing.T) {

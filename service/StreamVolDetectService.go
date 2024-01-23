@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/johannes-kuhfuss/radio-stats/config"
@@ -22,13 +21,7 @@ type DefaultStreamVolDetectService struct {
 	Cfg *config.AppConfig
 }
 
-var (
-	mu             sync.Mutex
-	deltaZeroCount map[string]int
-)
-
 func NewStreamVolDetectService(cfg *config.AppConfig) DefaultStreamVolDetectService {
-	deltaZeroCount = make(map[string]int)
 	return DefaultStreamVolDetectService{
 		Cfg: cfg,
 	}
@@ -62,10 +55,8 @@ func (s DefaultStreamVolDetectService) ListenRun(streamUrl string) {
 }
 
 func (s DefaultStreamVolDetectService) increaseDetectCount() {
-	mu.Lock()
 	s.Cfg.RunTime.StreamVolDetectCount++
 	s.Cfg.Metrics.StreamVolDetectCount.Inc()
-	mu.Unlock()
 }
 
 func (s DefaultStreamVolDetectService) updateVolMetrics(lines []string, streamUrl string) {
@@ -76,19 +67,10 @@ func (s DefaultStreamVolDetectService) updateVolMetrics(lines []string, streamUr
 			for _, num := range allNums {
 				f, err := strconv.ParseFloat(num, 64)
 				if err == nil {
-					delta := s.Cfg.RunTime.StreamVolumes[streamUrl] - f
-					if delta == 0.0 {
-						deltaZeroCount[streamUrl]++
-					} else {
-						deltaZeroCount[streamUrl] = 0
-					}
-					if deltaZeroCount[streamUrl] > 3 {
-						logger.Warn(fmt.Sprintf("Volume for %v has remained the same for %v cycles!", streamUrl, deltaZeroCount[streamUrl]))
-					}
-					mu.Lock()
-					s.Cfg.RunTime.StreamVolumes[streamUrl] = f
+					s.Cfg.RunTime.StreamVolumes.Lock()
+					s.Cfg.RunTime.StreamVolumes.Vols[streamUrl] = f
+					s.Cfg.RunTime.StreamVolumes.Unlock()
 					s.Cfg.Metrics.StreamVolume.WithLabelValues(streamUrl).Set(f)
-					mu.Unlock()
 				}
 			}
 		}
