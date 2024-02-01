@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/goccy/go-json v0.10.2
-	github.com/johannes-kuhfuss/services_utils v1.0.15
+	github.com/johannes-kuhfuss/services_utils v1.0.16
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/stretchr/testify v1.8.4
