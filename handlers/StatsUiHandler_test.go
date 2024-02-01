@@ -19,7 +19,7 @@ var (
 	recorder *httptest.ResponseRecorder
 )
 
-func setupUiTest(t *testing.T) func() {
+func setupStatsUiTest(t *testing.T) func() {
 	uh = NewStatsUiHandler(&cfg)
 	router = gin.Default()
 	router.LoadHTMLGlob("../templates/*.tmpl")
@@ -30,40 +30,40 @@ func setupUiTest(t *testing.T) func() {
 }
 
 func Test_StatusPage_Returns_Status(t *testing.T) {
-	teardown := setupUiTest(t)
+	teardown := setupStatsUiTest(t)
 	defer teardown()
 	router.GET("/", uh.StatusPage)
 	request, _ := http.NewRequest(http.MethodGet, "/", nil)
 
 	router.ServeHTTP(recorder, request)
 
-	_, parseErr := html.Parse(io.Reader(recorder.Body))
+	_, err := html.Parse(io.Reader(recorder.Body))
 	assert.EqualValues(t, http.StatusOK, recorder.Code)
-	assert.Nil(t, parseErr)
+	assert.Nil(t, err)
 }
 
 func Test_AboutPage_Returns_About(t *testing.T) {
-	teardown := setupUiTest(t)
+	teardown := setupStatsUiTest(t)
 	defer teardown()
 	router.GET("/about", uh.AboutPage)
 	request, _ := http.NewRequest(http.MethodGet, "/about", nil)
 
 	router.ServeHTTP(recorder, request)
 
-	_, parseErr := html.Parse(io.Reader(recorder.Body))
+	_, err := html.Parse(io.Reader(recorder.Body))
 	assert.EqualValues(t, http.StatusOK, recorder.Code)
-	assert.Nil(t, parseErr)
+	assert.Nil(t, err)
 }
 
 func Test_SwitchPage_Returns_Switch(t *testing.T) {
-	teardown := setupUiTest(t)
+	teardown := setupStatsUiTest(t)
 	defer teardown()
-	router.GET("/switch", uh.AboutPage)
+	router.GET("/switch", uh.SwitchPage)
 	request, _ := http.NewRequest(http.MethodGet, "/switch", nil)
 
 	router.ServeHTTP(recorder, request)
 
-	_, parseErr := html.Parse(io.Reader(recorder.Body))
+	_, err := html.Parse(io.Reader(recorder.Body))
 	assert.EqualValues(t, http.StatusOK, recorder.Code)
-	assert.Nil(t, parseErr)
+	assert.Nil(t, err)
 }
