@@ -1,1 +1,9 @@
 Complete unit test
+
+MQTT
+https://github.com/eclipse/paho.golang
+https://github.com/eclipse/paho.golang/tree/master/autopaho
+
+
+Config Mgmt:
+https://github.com/knadh/koanf
