@@ -19,14 +19,14 @@ var (
 	scrapeService      DefaultStreamScrapeService
 )
 
-func setupScrapeTest(t *testing.T) func() {
+func setupScrapeTest() func() {
 	scrapeRecorder = httptest.NewRecorder()
 	return func() {
 	}
 }
 
 func Test_GetDatafromUrl_NoUrl_ReturnsError(t *testing.T) {
-	teardown := setupScrapeTest(t)
+	teardown := setupScrapeTest()
 	defer teardown()
 
 	body, err := GetDataFromStreamUrl("")
@@ -37,7 +37,7 @@ func Test_GetDatafromUrl_NoUrl_ReturnsError(t *testing.T) {
 }
 
 func Test_GetDatafromUrl_ReturnsNoError(t *testing.T) {
-	teardown := setupScrapeTest(t)
+	teardown := setupScrapeTest()
 	defer teardown()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +123,7 @@ func Test_Scrape_NoUrl_DoesntScrape(t *testing.T) {
 func Test_ScrapeRun_LocalUrl_UpdatesMetrics(t *testing.T) {
 	var cfg config.AppConfig
 
-	teardown := setupScrapeTest(t)
+	teardown := setupScrapeTest()
 	defer teardown()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -19,7 +19,7 @@ var (
 	recorder *httptest.ResponseRecorder
 )
 
-func setupStatsUiTest(t *testing.T) func() {
+func setupStatsUiTest() func() {
 	uh = NewStatsUiHandler(&cfg)
 	router = gin.Default()
 	router.LoadHTMLGlob("../templates/*.tmpl")
@@ -30,7 +30,7 @@ func setupStatsUiTest(t *testing.T) func() {
 }
 
 func Test_StatusPage_Returns_Status(t *testing.T) {
-	teardown := setupStatsUiTest(t)
+	teardown := setupStatsUiTest()
 	defer teardown()
 	router.GET("/", uh.StatusPage)
 	request, _ := http.NewRequest(http.MethodGet, "/", nil)
@@ -43,7 +43,7 @@ func Test_StatusPage_Returns_Status(t *testing.T) {
 }
 
 func Test_AboutPage_Returns_About(t *testing.T) {
-	teardown := setupStatsUiTest(t)
+	teardown := setupStatsUiTest()
 	defer teardown()
 	router.GET("/about", uh.AboutPage)
 	request, _ := http.NewRequest(http.MethodGet, "/about", nil)
@@ -56,7 +56,7 @@ func Test_AboutPage_Returns_About(t *testing.T) {
 }
 
 func Test_SwitchPage_Returns_Switch(t *testing.T) {
-	teardown := setupStatsUiTest(t)
+	teardown := setupStatsUiTest()
 	defer teardown()
 	router.GET("/switch", uh.SwitchPage)
 	request, _ := http.NewRequest(http.MethodGet, "/switch", nil)

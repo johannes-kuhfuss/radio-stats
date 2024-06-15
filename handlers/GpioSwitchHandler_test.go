@@ -19,7 +19,7 @@ var (
 	svc service.DefaultGpioSwitchService
 )
 
-func setupSwitchUiTest(t *testing.T) func() {
+func setupSwitchUiTest() func() {
 	svc = service.NewGpioSwitchService(&cfg)
 	sh = NewGpioSwitchHandler(&cfg, svc)
 	router = gin.Default()
@@ -30,7 +30,7 @@ func setupSwitchUiTest(t *testing.T) func() {
 }
 
 func Test_validateReq_InvalidXpoint_ReturnsError(t *testing.T) {
-	tearDown := setupSwitchUiTest(t)
+	tearDown := setupSwitchUiTest()
 	defer tearDown()
 	swreq := dto.GpioSwitchRequest{
 		Xpoint: "noexist",
@@ -42,7 +42,7 @@ func Test_validateReq_InvalidXpoint_ReturnsError(t *testing.T) {
 }
 
 func Test_validateReq_ValidXpoint_ReturnsNoError(t *testing.T) {
-	tearDown := setupSwitchUiTest(t)
+	tearDown := setupSwitchUiTest()
 	defer tearDown()
 	outList := make(map[string]int)
 	outList["exists"] = 1
@@ -55,7 +55,7 @@ func Test_validateReq_ValidXpoint_ReturnsNoError(t *testing.T) {
 }
 
 func Test_SwitchXpoint_NoXpoint_ReturnsError(t *testing.T) {
-	tearDown := setupSwitchUiTest(t)
+	tearDown := setupSwitchUiTest()
 	defer tearDown()
 	router.POST("/switch", sh.SwitchXpoint)
 	request, _ := http.NewRequest(http.MethodPost, "/switch", nil)
@@ -68,7 +68,7 @@ func Test_SwitchXpoint_NoXpoint_ReturnsError(t *testing.T) {
 }
 
 func Test_SwitchXpoint_NoSwitch_ReturnsError(t *testing.T) {
-	tearDown := setupSwitchUiTest(t)
+	tearDown := setupSwitchUiTest()
 	defer tearDown()
 	outList := make(map[string]int)
 	outList["exists"] = 1
