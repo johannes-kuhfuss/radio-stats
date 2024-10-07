@@ -174,7 +174,7 @@ func startGpioPolling() {
 }
 
 func startEmberPolling() {
-	emberPollService.Poll()
+	//emberPollService.Poll()
 }
 
 func startStreamVolumeDetect() {

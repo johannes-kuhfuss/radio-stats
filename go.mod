@@ -3,13 +3,20 @@ module github.com/johannes-kuhfuss/radio-stats
 go 1.23.1
 
 require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/gin-gonic/gin v1.10.0
 	github.com/goccy/go-json v0.10.3
 	github.com/johannes-kuhfuss/services_utils v1.0.20
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/prometheus/client_golang v1.20.4
 	github.com/stretchr/testify v1.9.0
+	go.uber.org/multierr v1.11.0 // indirect
+	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/crypto v0.28.0
 	golang.org/x/net v0.30.0
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 require (
@@ -27,6 +34,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.17.10 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
+	github.com/knz/go-libedit v1.10.1 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -41,16 +49,5 @@ require (
 	golang.org/x/arch v0.11.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/text v0.19.0 // indirect
-	google.golang.org/protobuf v1.34.2 // indirect
-)
-
-require (
-	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/gin-gonic/gin v1.10.0
-	github.com/johannes-kuhfuss/emberplus v1.0.0
-	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/prometheus/client_golang v1.20.4
-	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.27.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
+	google.golang.org/protobuf v1.35.1 // indirect
 )

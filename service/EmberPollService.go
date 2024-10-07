@@ -1,14 +1,7 @@
 package service
 
 import (
-	"encoding/json"
-	"fmt"
-	"time"
-
-	"github.com/johannes-kuhfuss/emberplus/client"
 	"github.com/johannes-kuhfuss/radio-stats/config"
-	"github.com/johannes-kuhfuss/services_utils/logger"
-	"github.com/johannes-kuhfuss/services_utils/misc"
 )
 
 type EmberPollService interface {
@@ -25,6 +18,7 @@ func NewEmberPollService(cfg *config.AppConfig) DefaultEmberPollService {
 	}
 }
 
+/*
 func (s DefaultEmberPollService) InitEmberConn() {
 	for host, hostData := range s.Cfg.Ember.InConfig {
 		var (
@@ -94,3 +88,4 @@ func (s DefaultEmberPollService) PollRun() {
 		}
 	}
 }
+*/

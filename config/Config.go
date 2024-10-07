@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/johannes-kuhfuss/emberplus/client"
 	"github.com/johannes-kuhfuss/services_utils/api_error"
 	"github.com/johannes-kuhfuss/services_utils/logger"
 	"github.com/joho/godotenv"
@@ -60,7 +59,7 @@ type EmberConfig struct {
 	EntryPath     string
 	MetricsPrefix string
 	GPIOs         []string
-	Conn          *client.EmberClient
+	//Conn          *client.EmberClient
 }
 
 type EmberConfigDecoder map[string]EmberConfig
