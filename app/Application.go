@@ -174,7 +174,7 @@ func startGpioPolling() {
 }
 
 func startEmberPolling() {
-	//emberPollService.Poll()
+	emberPollService.Poll()
 }
 
 func startStreamVolumeDetect() {
@@ -187,6 +187,7 @@ func cleanUp() {
 	cfg.RunTime.RunScrape = false
 	cfg.RunTime.RunGpioPoll = false
 	cfg.RunTime.RunEmberPoll = false
+	emberPollService.CloseEmberConn()
 	ctx, cancel = context.WithTimeout(context.Background(), shutdownTime)
 	defer func() {
 		logger.Info("Cleaning up")
