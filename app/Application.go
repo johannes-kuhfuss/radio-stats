@@ -75,9 +75,11 @@ func getCmdLine() {
 
 func initRouter() {
 	gin.SetMode(cfg.Gin.Mode)
-	gin.DefaultWriter = logger.GetLogger()
 	router := gin.New()
-	router.Use(gin.Logger())
+	if cfg.Gin.LogToLogger {
+		gin.DefaultWriter = logger.GetLogger()
+		router.Use(gin.Logger())
+	}
 	router.Use(gin.Recovery())
 	router.SetTrustedProxies(nil)
 	globPath := filepath.Join(cfg.Gin.TemplatePath, "*.tmpl")
@@ -183,6 +185,8 @@ func cleanUp() {
 	shutdownTime := time.Duration(cfg.Server.GracefulShutdownTime) * time.Second
 	cfg.RunTime.RunListen = false
 	cfg.RunTime.RunScrape = false
+	cfg.RunTime.RunGpioPoll = false
+	cfg.RunTime.RunEmberPoll = false
 	ctx, cancel = context.WithTimeout(context.Background(), shutdownTime)
 	defer func() {
 		logger.Info("Cleaning up")

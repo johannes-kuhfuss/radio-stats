@@ -87,8 +87,6 @@ func (s DefaultEmberPollService) PollRun() {
 					if d["description"] != nil && d["value"] != nil {
 						metricName := clientConfig.MetricsPrefix + d["description"].(string)
 						metricsValue := d["value"].(bool)
-
-						logger.Info(fmt.Sprintf("name: %v, value: %v", metricName, metricsValue))
 						s.Cfg.Metrics.GpioStateGauge.WithLabelValues(metricName).Set(float64(boolToInt(metricsValue)))
 					}
 				}
