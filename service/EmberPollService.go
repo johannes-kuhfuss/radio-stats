@@ -1,7 +1,14 @@
 package service
 
 import (
+	"encoding/json"
+	"fmt"
+	"time"
+
+	"github.com/johannes-kuhfuss/emberplus/emberclient"
 	"github.com/johannes-kuhfuss/radio-stats/config"
+	"github.com/johannes-kuhfuss/services_utils/logger"
+	"github.com/johannes-kuhfuss/services_utils/misc"
 )
 
 type EmberPollService interface {
@@ -18,18 +25,17 @@ func NewEmberPollService(cfg *config.AppConfig) DefaultEmberPollService {
 	}
 }
 
-/*
 func (s DefaultEmberPollService) InitEmberConn() {
 	for host, hostData := range s.Cfg.Ember.InConfig {
 		var (
 			emberClientConfig config.EmberConfig
-			emberClient       *client.EmberClient
+			emberClient       *emberclient.EmberClient
 		)
 		emberClientConfig.Port = hostData.Port
 		emberClientConfig.EntryPath = hostData.EntryPath
 		emberClientConfig.MetricsPrefix = hostData.MetricsPrefix
 		emberClientConfig.GPIOs = hostData.GPIOs
-		emberClient, err := client.NewEmberClient(host, emberClientConfig.Port)
+		emberClient, err := emberclient.NewEmberClient(host, emberClientConfig.Port)
 		if err != nil {
 			logger.Error(fmt.Sprintf("could not creaet Ember connection to host %v on port %v", host, emberClientConfig.Port), err)
 		} else {
@@ -88,4 +94,3 @@ func (s DefaultEmberPollService) PollRun() {
 		}
 	}
 }
-*/
