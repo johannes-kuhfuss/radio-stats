@@ -48,7 +48,7 @@ func Test_runFfmpeg_LocalExec_ReturnsResult(t *testing.T) {
 func Test_updateMetrics_UpdatesMetrics(t *testing.T) {
 	var lines []string
 	volService = NewStreamVolDetectService(&volCfg)
-	f, _ := os.Open("ffmpeg_sample_result.txt")
+	f, _ := os.Open("../samples/ffmpeg_sample_result.txt")
 	defer f.Close()
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {

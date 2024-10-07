@@ -1,8 +1,6 @@
 module github.com/johannes-kuhfuss/radio-stats
 
-go 1.21.0
-
-toolchain go1.23.1
+go 1.23.1
 
 require (
 	github.com/goccy/go-json v0.10.3
@@ -49,6 +47,7 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gin-gonic/gin v1.10.0
+	github.com/johannes-kuhfuss/emberplus v1.0.0
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.20.4
 	go.uber.org/multierr v1.11.0 // indirect

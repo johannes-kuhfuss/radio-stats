@@ -40,7 +40,7 @@ func InitGpioSwitchHttp() {
 		IdleConnTimeout:    0,
 	}
 	httpGpioSwitchClient = http.Client{
-		Transport: &httpGpioPollTr,
+		Transport: &httpGpioSwitchTr,
 		Timeout:   5 * time.Second,
 	}
 }

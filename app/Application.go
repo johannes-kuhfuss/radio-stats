@@ -34,6 +34,7 @@ var (
 	gpioPollService        service.DefaultGpioPollService
 	gpioSwitchService      service.DefaultGpioSwitchService
 	streamVolDetectService service.StreamVolDetectService
+	emberPollService       service.DefaultEmberPollService
 )
 
 func StartApp() {
@@ -54,13 +55,14 @@ func StartApp() {
 	go startServer()
 	go startStreamScraping()
 	go startGpioPolling()
+	go startEmberPolling()
 	go startStreamVolumeDetect()
 
 	<-appEnd
 	cleanUp()
 
-	if srvErr := server.Shutdown(ctx); err != nil {
-		logger.Error("Graceful shutdown failed", srvErr)
+	if err := server.Shutdown(ctx); err != nil {
+		logger.Error("Graceful shutdown failed", err)
 	} else {
 		logger.Info("Graceful shutdown finished")
 	}
@@ -128,6 +130,7 @@ func wireApp() {
 	gpioSwitchService = service.NewGpioSwitchService(&cfg)
 	gpioSwitchHandler = handlers.NewGpioSwitchHandler(&cfg, gpioSwitchService)
 	streamVolDetectService = service.NewStreamVolDetectService(&cfg)
+	emberPollService = service.NewEmberPollService(&cfg)
 }
 
 func mapUrls() {
@@ -166,6 +169,10 @@ func startStreamScraping() {
 
 func startGpioPolling() {
 	gpioPollService.Poll()
+}
+
+func startEmberPolling() {
+	emberPollService.Poll()
 }
 
 func startStreamVolumeDetect() {

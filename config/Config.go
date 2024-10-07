@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/johannes-kuhfuss/emberplus/client"
 	"github.com/johannes-kuhfuss/services_utils/api_error"
 	"github.com/johannes-kuhfuss/services_utils/logger"
 	"github.com/joho/godotenv"
@@ -54,6 +55,35 @@ func (pdd *PinConfigDecoder) Decode(value string) error {
 	return nil
 }
 
+type EmberConfig struct {
+	Port          int
+	EntryPath     string
+	MetricsPrefix string
+	GPIOs         []string
+	Conn          *client.EmberClient
+}
+
+type EmberConfigDecoder map[string]EmberConfig
+
+func (ed *EmberConfigDecoder) Decode(value string) error {
+	emberData := map[string]EmberConfig{}
+	hosts := strings.Split(value, ";")
+	for _, host := range hosts {
+		hostData := EmberConfig{}
+		kvpair := strings.Split(host, "=")
+		if len(kvpair) != 2 {
+			return fmt.Errorf("invalid map item: %q", host)
+		}
+		err := json.Unmarshal([]byte(kvpair[1]), &hostData)
+		if err != nil {
+			return fmt.Errorf("invalid map json: %w", err)
+		}
+		emberData[kvpair[0]] = hostData
+	}
+	*ed = EmberConfigDecoder(emberData)
+	return nil
+}
+
 type AppConfig struct {
 	Server struct {
 		Host                 string `envconfig:"SERVER_HOST"`
@@ -90,6 +120,10 @@ type AppConfig struct {
 		InConfig    PinConfigDecoder `envconfig:"GPIO_IN_CONFIG"`
 		OutConfig   map[string]int   `envconfig:"GPIO_OUT_CONFIG"`
 	}
+	Ember struct {
+		IntervalSec int                `envconfig:"EMBER_POLL_INTERVAL_SEC" default:"1"`
+		InConfig    EmberConfigDecoder `envconfig:"EMBER_IN_CONFIG"`
+	}
 	Metrics struct {
 		StreamListenerGauge  prometheus.GaugeVec
 		StreamScrapeCount    prometheus.Counter
@@ -108,10 +142,12 @@ type AppConfig struct {
 			Vols map[string]float64
 		}
 		RunScrape     bool
-		RunPoll       bool
+		RunGpioPoll   bool
+		RunEmberPoll  bool
 		GpioConnected bool
 		RunListen     bool
 		Gpios         []PinData
+		EmberGpios    map[string]EmberConfig
 	}
 }
 
@@ -131,6 +167,7 @@ func InitConfig(file string, config *AppConfig) api_error.ApiErr {
 	config.RunTime.RunScrape = false
 	config.RunTime.RunListen = false
 	config.RunTime.StreamVolumes.Vols = make(map[string]float64)
+	config.RunTime.EmberGpios = make(map[string]EmberConfig)
 	logger.Info("Done initalizing configuration")
 	return nil
 }

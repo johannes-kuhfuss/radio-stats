@@ -55,7 +55,7 @@ func Test_Poll_NoHost_SetsRunPollFalse(t *testing.T) {
 
 	gpioService.Poll()
 
-	assert.EqualValues(t, false, gpioCfg.RunTime.RunPoll)
+	assert.EqualValues(t, false, gpioCfg.RunTime.RunGpioPoll)
 }
 
 func Test_LoginToGpio_CannotConnect_ReturnsFalse(t *testing.T) {
@@ -145,7 +145,7 @@ func Test_GetXmlFromPollUrl_WrongData_ReturnsError(t *testing.T) {
 }
 
 func Test_GetXmlFromPollUrl_NoError_ReturnsData(t *testing.T) {
-	xmlData, _ := os.ReadFile("gpioStat_sample.txt")
+	xmlData, _ := os.ReadFile("../samples/gpioStat_sample.txt")
 
 	teardown := setupGpioTest(false, false, string(xmlData))
 	defer teardown()

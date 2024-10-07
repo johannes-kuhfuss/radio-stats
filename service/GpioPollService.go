@@ -80,15 +80,15 @@ func LoginToGpio(cfg *config.AppConfig) (success bool) {
 func (s DefaultGpioPollService) Poll() {
 	if s.Cfg.Gpio.Host == "" {
 		logger.Warn("No GPIO poll host given. Not polling GPIOs")
-		s.Cfg.RunTime.RunPoll = false
+		s.Cfg.RunTime.RunGpioPoll = false
 	} else {
 		loggedIn = LoginToGpio(s.Cfg)
 		s.Cfg.RunTime.GpioConnected = loggedIn
 		logger.Info(fmt.Sprintf("Starting to poll GPIOs from host %v", s.Cfg.Gpio.Host))
-		s.Cfg.RunTime.RunPoll = true
+		s.Cfg.RunTime.RunGpioPoll = true
 	}
 
-	for s.Cfg.RunTime.RunPoll {
+	for s.Cfg.RunTime.RunGpioPoll {
 		if loggedIn {
 			err := s.PollRun()
 			if err != nil {
