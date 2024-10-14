@@ -142,6 +142,7 @@ func mapUrls() {
 	authorized := cfg.RunTime.Router.Group("/", basicAuth(cfg.Server.AdminUserName, cfg.Server.AdminPasswordHash))
 	authorized.GET("/switch", statsUiHandler.SwitchPage)
 	cfg.RunTime.Router.POST("/switch", gpioSwitchHandler.SwitchXpoint)
+	cfg.RunTime.Router.GET("/logs", statsUiHandler.LogsPage)
 }
 
 func RegisterForOsSignals() {
