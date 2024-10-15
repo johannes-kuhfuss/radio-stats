@@ -85,7 +85,7 @@ func (s DefaultStreamVolDetectService) runFfmpeg(streamUrl string) []string {
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		cancel()
-		logger.Error("Could not execute ffmpeg: ", err)
+		logger.Error(fmt.Sprintf("Could not execute ffmpeg on URL %v: ", streamUrl), err)
 		return nil
 	}
 	cancel()
