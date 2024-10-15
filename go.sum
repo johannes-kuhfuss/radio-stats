@@ -33,8 +33,8 @@ github.com/goccy/go-json v0.10.3/go.mod h1:oq7eo15ShAhp70Anwd5lgX2pLfOS3QCiwU/PU
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
-github.com/johannes-kuhfuss/emberplus v1.0.2 h1:ZZlaIK5jFb0tp/7ZNR04cG5ElaqqVgDMzRn6kEZ3UH4=
-github.com/johannes-kuhfuss/emberplus v1.0.2/go.mod h1:dSN7RWt9W8tfARwUpEWXj0Ee1WCENn/PfQOUARHClHY=
+github.com/johannes-kuhfuss/emberplus v1.0.3 h1:HowzLfGKgMK5ksxWEQaqJpqe7pUmGVxypt+5mhvs2ak=
+github.com/johannes-kuhfuss/emberplus v1.0.3/go.mod h1:dSN7RWt9W8tfARwUpEWXj0Ee1WCENn/PfQOUARHClHY=
 github.com/johannes-kuhfuss/services_utils v1.0.20 h1:8JAVQX1+FW+JHks0rv7fKVfVIltL0ygnIAtouPmmCbA=
 github.com/johannes-kuhfuss/services_utils v1.0.20/go.mod h1:SRPUoynFkHk8puVRXWqUQpxQAnOS/DUbDUOYeCprexg=
 github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
