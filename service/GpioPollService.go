@@ -66,7 +66,7 @@ func LoginToGpio(cfg *config.AppConfig) (success bool) {
 		return false
 	} else {
 		if len(resp.Cookies()) > 0 {
-			logger.Info("Successfully authenticated")
+			logger.Info(fmt.Sprintf("Successfully authenticated to host %v", cfg.Gpio.Host))
 			cookie = resp.Cookies()[0]
 			return true
 		} else {
