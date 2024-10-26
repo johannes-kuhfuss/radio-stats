@@ -1,7 +1,9 @@
+// package app ties together all bits and pieces to start the program
 package app
 
 import "github.com/prometheus/client_golang/prometheus"
 
+// initMetrics sets up the Prometheus metrics
 func initMetrics() {
 	cfg.Metrics.StreamListenerGauge = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "Coloradio",

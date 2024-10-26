@@ -1,5 +1,7 @@
+// package domain defines the core data structures
 package domain
 
+// Mapping stream URLs to stream names
 var (
 	StreamNames = map[string]string{
 		"http://streaming.fueralle.org:80/coloradio_160.mp3": "MP3 - 160kBit/s",

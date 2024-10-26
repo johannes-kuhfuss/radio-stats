@@ -1,7 +1,9 @@
+// package domain defines the core data structures
 package domain
 
 import "encoding/xml"
 
+// Data structure as received by the GPIO interface
 type DevStat struct {
 	XMLName xml.Name `xml:"devStat"`
 	Text    string   `xml:",chardata"`

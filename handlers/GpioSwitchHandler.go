@@ -1,3 +1,4 @@
+// package handlers sets up the handlers for the Web UI
 package handlers
 
 import (
@@ -17,6 +18,7 @@ type GpioSwitchHandler struct {
 	Svc service.GpioSwitchService
 }
 
+// NewGpioSwitchHandler sets up a new handler and injects its dependencies
 func NewGpioSwitchHandler(cfg *config.AppConfig, svc service.GpioSwitchService) GpioSwitchHandler {
 	return GpioSwitchHandler{
 		Cfg: cfg,
@@ -24,6 +26,7 @@ func NewGpioSwitchHandler(cfg *config.AppConfig, svc service.GpioSwitchService) 
 	}
 }
 
+// SwitchXpoint executes a switch on a crosspoint via GPIO
 func (sh *GpioSwitchHandler) SwitchXpoint(c *gin.Context) {
 	var switchReq dto.GpioSwitchRequest
 	switchReq.Xpoint = c.PostForm("xpoint")
@@ -40,6 +43,7 @@ func (sh *GpioSwitchHandler) SwitchXpoint(c *gin.Context) {
 	c.JSON(http.StatusOK, switchReq)
 }
 
+// validateReq makes sure the crosspoint (name) exists
 func (sh *GpioSwitchHandler) validateReq(req dto.GpioSwitchRequest) api_error.ApiErr {
 	_, ok := sh.Cfg.Gpio.OutConfig[req.Xpoint]
 	if ok {

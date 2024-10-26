@@ -1,3 +1,4 @@
+// package dto defines the data structures used to exchange information
 package dto
 
 import (
@@ -10,6 +11,7 @@ import (
 	"github.com/johannes-kuhfuss/radio-stats/config"
 )
 
+// ConfigResp holds converted configuration data for display on the web UI
 type ConfigResp struct {
 	ServerHost                 string
 	ServerPort                 string
@@ -45,6 +47,7 @@ type ConfigResp struct {
 	StreamVolumes                 string
 }
 
+// stateBoolToString converts boolean state information to a display string
 func stateBoolToString(state bool) string {
 	if state {
 		return "Active"
@@ -52,6 +55,7 @@ func stateBoolToString(state bool) string {
 	return "Inactive"
 }
 
+// invertBoolToString converts boolean inversion information to a display string
 func invertBoolToString(state bool) string {
 	if state {
 		return "Inverted"
@@ -59,6 +63,7 @@ func invertBoolToString(state bool) string {
 	return "Non inverted"
 }
 
+// volumeString converts volume information to a display string
 func volumeString(volumes map[string]float64) string {
 	b := new(bytes.Buffer)
 	sUrls := make([]string, 0, len(volumes))
@@ -72,6 +77,7 @@ func volumeString(volumes map[string]float64) string {
 	return b.String()
 }
 
+// GetConfig converts the configuration to its display format
 func GetConfig(cfg *config.AppConfig) (resp ConfigResp) {
 	resp = ConfigResp{
 		ServerHost:                    cfg.Server.Host,

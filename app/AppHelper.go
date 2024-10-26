@@ -1,3 +1,4 @@
+// package app ties together all bits and pieces to start the program
 package app
 
 import (
@@ -9,6 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// basicAuth checks the basic auth headers for valid credentials
 func basicAuth(adminuser string, adminpwhash string) gin.HandlerFunc {
 	realm := "Basic realm=Authorization Required"
 	return func(c *gin.Context) {
@@ -23,6 +25,7 @@ func basicAuth(adminuser string, adminpwhash string) gin.HandlerFunc {
 	}
 }
 
+// checkAuth validates user name and password against the configuration
 func checkAuth(adminuser string, adminpwhash string, authHeaders []string) (found bool, user string) {
 	for _, header := range authHeaders {
 		if strings.HasPrefix(header, "Basic ") {

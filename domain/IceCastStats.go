@@ -1,5 +1,7 @@
+// package domain defines the core data structures
 package domain
 
+// Data structure as received the from the Icecast server
 type IceCastStats struct {
 	Icestats struct {
 		Admin              string `json:"admin"`

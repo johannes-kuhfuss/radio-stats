@@ -1,3 +1,4 @@
+// package config defines the program's configuration including the defaults
 package config
 
 import (
@@ -22,6 +23,7 @@ type PinConfig struct {
 	Invert bool
 }
 
+// Data per pin of GPIO
 type PinData struct {
 	Id     int
 	Name   string
@@ -31,6 +33,7 @@ type PinData struct {
 
 type PinConfigDecoder map[int]PinConfig
 
+// Decode decodes the configuration into pin configuration data
 func (pdd *PinConfigDecoder) Decode(value string) error {
 	gpioData := map[int]PinConfig{}
 	pins := strings.Split(value, ";")
@@ -54,6 +57,7 @@ func (pdd *PinConfigDecoder) Decode(value string) error {
 	return nil
 }
 
+// Data per Ember provider
 type EmberConfig struct {
 	Port          int
 	EntryPath     string
@@ -64,6 +68,7 @@ type EmberConfig struct {
 
 type EmberConfigDecoder map[string]EmberConfig
 
+// Decode decodes the configuration into Ember configuration data
 func (ed *EmberConfigDecoder) Decode(value string) error {
 	emberData := map[string]EmberConfig{}
 	hosts := strings.Split(value, ";")
@@ -83,6 +88,7 @@ func (ed *EmberConfigDecoder) Decode(value string) error {
 	return nil
 }
 
+// Configuration with subsections
 type AppConfig struct {
 	Server struct {
 		Host                 string `envconfig:"SERVER_HOST"`
@@ -155,6 +161,7 @@ var (
 	EnvFile = ".env"
 )
 
+// InitConfig initializes the configuration and sets the defaults
 func InitConfig(file string, config *AppConfig) error {
 	logger.Info(fmt.Sprintf("Initalizing configuration from file %v", file))
 	loadConfig(file)
@@ -171,6 +178,7 @@ func InitConfig(file string, config *AppConfig) error {
 	return nil
 }
 
+// loadConfig loads the configuration from file. Returns an error if loading fails
 func loadConfig(file string) error {
 	if err := godotenv.Load(file); err != nil {
 		logger.Info("Could not open env file. Using Environment variable and defaults")
@@ -179,6 +187,7 @@ func loadConfig(file string) error {
 	return nil
 }
 
+// SetupGpios sets up the default data for the GPIO part of teh configuration
 func SetupGpios(config *AppConfig) {
 	for key, val := range config.Gpio.InConfig {
 		var gpio PinData

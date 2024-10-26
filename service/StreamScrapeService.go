@@ -1,3 +1,4 @@
+// package service implements the services and their business logic that provide the main part of the program
 package service
 
 import (

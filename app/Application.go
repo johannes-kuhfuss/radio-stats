@@ -1,3 +1,4 @@
+// package app ties together all bits and pieces to start the program
 package app
 
 import (
@@ -37,6 +38,7 @@ var (
 	emberPollService       service.DefaultEmberPollService
 )
 
+// StartApp orchestrates the startup of the application
 func StartApp() {
 	logger.Info("Starting application")
 
@@ -67,11 +69,13 @@ func StartApp() {
 	}
 }
 
+// getCmdLine checks the command line arguments
 func getCmdLine() {
 	flag.StringVar(&config.EnvFile, "config.file", ".env", "Specify location of config file. Default is .env")
 	flag.Parse()
 }
 
+// initRouter initializes gin-gonic as the router
 func initRouter() {
 	gin.SetMode(cfg.Gin.Mode)
 	router := gin.New()
@@ -87,6 +91,7 @@ func initRouter() {
 	cfg.RunTime.Router = router
 }
 
+// initServer checks whether https is enabled and initializes the web server accordingly
 func initServer() {
 	var tlsConfig tls.Config
 
@@ -124,6 +129,7 @@ func initServer() {
 	}
 }
 
+// wireApp initializes the services in the right order and injects the dependencies
 func wireApp() {
 	statsUiHandler = handlers.NewStatsUiHandler(&cfg)
 	streamScrapeService = service.NewStreamScrapeService(&cfg)
@@ -134,6 +140,7 @@ func wireApp() {
 	emberPollService = service.NewEmberPollService(&cfg)
 }
 
+// mapUrls defines the handlers for the available URLs
 func mapUrls() {
 	cfg.RunTime.Router.GET("/", statsUiHandler.StatusPage)
 	cfg.RunTime.Router.GET("/about", statsUiHandler.AboutPage)
@@ -144,11 +151,13 @@ func mapUrls() {
 	cfg.RunTime.Router.GET("/logs", statsUiHandler.LogsPage)
 }
 
+// RegisterForOsSignals listens for OS signals terminating the program and sends an internal signal to start cleanup
 func RegisterForOsSignals() {
 	appEnd = make(chan os.Signal, 1)
 	signal.Notify(appEnd, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 }
 
+// startServer starts the preconfigured web server
 func startServer() {
 	logger.Info(fmt.Sprintf("Listening on %v", cfg.RunTime.ListenAddr))
 	cfg.RunTime.StartDate = date.GetNowUtc()
@@ -165,22 +174,27 @@ func startServer() {
 	}
 }
 
+// startStreamScraping starts the stream scraping
 func startStreamScraping() {
 	streamScrapeService.Scrape()
 }
 
+// startGpioPolling starts the GPIO polling
 func startGpioPolling() {
 	gpioPollService.Poll()
 }
 
+// startEmberPolling starts the Ember polling
 func startEmberPolling() {
 	emberPollService.Poll()
 }
 
+// startStreamVolumeDetect starts the detections of stream volumes
 func startStreamVolumeDetect() {
 	streamVolDetectService.Listen()
 }
 
+// cleanUp tries to clean up when the program is stopped
 func cleanUp() {
 	logger.Info("Cleaning up")
 	shutdownTime := time.Duration(cfg.Server.GracefulShutdownTime) * time.Second
