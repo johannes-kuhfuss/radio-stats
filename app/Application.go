@@ -41,8 +41,7 @@ func StartApp() {
 	logger.Info("Starting application")
 
 	getCmdLine()
-	err := config.InitConfig(config.EnvFile, &cfg)
-	if err != nil {
+	if err := config.InitConfig(config.EnvFile, &cfg); err != nil {
 		panic(err)
 	}
 	initRouter()
@@ -183,6 +182,7 @@ func startStreamVolumeDetect() {
 }
 
 func cleanUp() {
+	logger.Info("Cleaning up")
 	shutdownTime := time.Duration(cfg.Server.GracefulShutdownTime) * time.Second
 	cfg.RunTime.RunListen = false
 	cfg.RunTime.RunScrape = false
@@ -191,7 +191,6 @@ func cleanUp() {
 	emberPollService.CloseEmberConn()
 	ctx, cancel = context.WithTimeout(context.Background(), shutdownTime)
 	defer func() {
-		logger.Info("Cleaning up")
 		logger.Info("Done cleaning up")
 		cancel()
 	}()

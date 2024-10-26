@@ -11,7 +11,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/emberplus/emberclient"
-	"github.com/johannes-kuhfuss/services_utils/api_error"
 	"github.com/johannes-kuhfuss/services_utils/logger"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
@@ -156,12 +155,11 @@ var (
 	EnvFile = ".env"
 )
 
-func InitConfig(file string, config *AppConfig) api_error.ApiErr {
+func InitConfig(file string, config *AppConfig) error {
 	logger.Info(fmt.Sprintf("Initalizing configuration from file %v", file))
 	loadConfig(file)
-	err := envconfig.Process("", config)
-	if err != nil {
-		return api_error.NewInternalServerError("Could not initalize configuration. Check your environment variables", err)
+	if err := envconfig.Process("", config); err != nil {
+		return fmt.Errorf("could not initalize configuration. Check your environment variables: %w", err)
 	}
 	SetupGpios(config)
 	config.RunTime.StreamScrapeCount = 0
@@ -174,8 +172,7 @@ func InitConfig(file string, config *AppConfig) api_error.ApiErr {
 }
 
 func loadConfig(file string) error {
-	err := godotenv.Load(file)
-	if err != nil {
+	if err := godotenv.Load(file); err != nil {
 		logger.Info("Could not open env file. Using Environment variable and defaults")
 		return err
 	}

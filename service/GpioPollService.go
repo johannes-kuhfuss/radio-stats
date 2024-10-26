@@ -117,10 +117,8 @@ func (s DefaultGpioPollService) PollRun() error {
 		mapState(gpioState, s.Cfg)
 		updateGpioMetrics(s.Cfg)
 		return nil
-	} else {
-		return err
 	}
-
+	return err
 }
 
 func GetXmlFromPollUrl(pollUrl string) (*domain.DevStat, error) {
@@ -142,8 +140,7 @@ func GetXmlFromPollUrl(pollUrl string) (*domain.DevStat, error) {
 
 	decoder := xml.NewDecoder(resp.Body)
 	decoder.CharsetReader = charset.NewReaderLabel
-	err = decoder.Decode(&gpioState)
-	if err != nil {
+	if err := decoder.Decode(&gpioState); err != nil {
 		logger.Error("Error while converting GPIO data to XML", err)
 		return nil, err
 	}
@@ -165,11 +162,7 @@ func mapState(gpioState *domain.DevStat, cfg *config.AppConfig) {
 }
 
 func stringToBool(s string) bool {
-	if s == "0" {
-		return false
-	} else {
-		return true
-	}
+	return s != "0"
 }
 
 func updateGpioMetrics(cfg *config.AppConfig) {
@@ -181,7 +174,6 @@ func updateGpioMetrics(cfg *config.AppConfig) {
 func boolToInt(state bool) int {
 	if state {
 		return 1
-	} else {
-		return 0
 	}
+	return 0
 }

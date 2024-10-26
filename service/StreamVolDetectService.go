@@ -77,7 +77,7 @@ func (s DefaultStreamVolDetectService) updateVolMetrics(lines []string, streamUr
 	}
 }
 
-func (s DefaultStreamVolDetectService) runFfmpeg(streamUrl string) []string {
+func (s DefaultStreamVolDetectService) runFfmpeg(streamUrl string) (lines []string) {
 	ctx := context.Background()
 	timeout := time.Duration(s.Cfg.StreamVolDetect.Duration+5) * time.Second
 	ctx, cancel := context.WithTimeout(ctx, timeout)
@@ -89,6 +89,5 @@ func (s DefaultStreamVolDetectService) runFfmpeg(streamUrl string) []string {
 		return nil
 	}
 	cancel()
-	lines := strings.Split(string(out), "\n")
-	return lines
+	return strings.Split(string(out), "\n")
 }

@@ -48,17 +48,15 @@ type ConfigResp struct {
 func stateBoolToString(state bool) string {
 	if state {
 		return "Active"
-	} else {
-		return "Inactive"
 	}
+	return "Inactive"
 }
 
 func invertBoolToString(state bool) string {
 	if state {
 		return "Inverted"
-	} else {
-		return "Non inverted"
 	}
+	return "Non inverted"
 }
 
 func volumeString(volumes map[string]float64) string {
@@ -74,8 +72,8 @@ func volumeString(volumes map[string]float64) string {
 	return b.String()
 }
 
-func GetConfig(cfg *config.AppConfig) ConfigResp {
-	resp := ConfigResp{
+func GetConfig(cfg *config.AppConfig) (resp ConfigResp) {
+	resp = ConfigResp{
 		ServerHost:                    cfg.Server.Host,
 		ServerPort:                    cfg.Server.Port,
 		ServerTlsPort:                 cfg.Server.TlsPort,
@@ -121,5 +119,5 @@ func GetConfig(cfg *config.AppConfig) ConfigResp {
 		resp.GpioOuts = append(resp.GpioOuts, s)
 		sort.Strings(resp.GpioOuts)
 	}
-	return resp
+	return
 }

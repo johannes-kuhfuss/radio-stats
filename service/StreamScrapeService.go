@@ -95,22 +95,18 @@ func GetDataFromStreamUrl(Url string) ([]byte, error) {
 }
 
 func sanitize(body []byte) string {
-	saniBody := strings.ReplaceAll(string(body), " - ", "null")
-	return saniBody
+	return strings.ReplaceAll(string(body), " - ", "null")
 }
 
-func unMarshall(sanitizedBody string) (domain.IceCastStats, error) {
-	var streamData domain.IceCastStats
-	err := json.Unmarshal([]byte(sanitizedBody), &streamData)
-	if err != nil {
+func unMarshall(sanitizedBody string) (streamData domain.IceCastStats, e error) {
+	if err := json.Unmarshal([]byte(sanitizedBody), &streamData); err != nil {
 		logger.Error("Error while converting stream metrics to JSON", err)
 		return streamData, err
 	}
 	return streamData, nil
 }
 
-func (s DefaultStreamScrapeService) updateStreamMetrics(streamData domain.IceCastStats) int {
-	streamCount := 0
+func (s DefaultStreamScrapeService) updateStreamMetrics(streamData domain.IceCastStats) (streamCount int) {
 	for _, source := range streamData.Icestats.Source {
 		if source.ServerName == s.Cfg.StreamScrape.ExpectedServerName {
 			streamCount++
@@ -119,5 +115,5 @@ func (s DefaultStreamScrapeService) updateStreamMetrics(streamData domain.IceCas
 			s.Cfg.Metrics.StreamListenerGauge.WithLabelValues(name).Set(float64(listeners))
 		}
 	}
-	return streamCount
+	return
 }

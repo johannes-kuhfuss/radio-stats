@@ -77,8 +77,7 @@ func (s DefaultEmberPollService) PollRun() {
 			logger.Error(fmt.Sprintf("Could not get data from Ember provider. Host: %v, Port: %v", host, clientConfig.Port), err)
 			continue
 		} else {
-			err := json.Unmarshal(data, &emberData)
-			if err != nil {
+			if err := json.Unmarshal(data, &emberData); err != nil {
 				logger.Error(fmt.Sprintf("Could not marshall data from Ember provider. Host: %v", host), err)
 				continue
 			}
