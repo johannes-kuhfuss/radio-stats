@@ -47,6 +47,14 @@ func (s DefaultEmberPollService) InitEmberConn() {
 	}
 }
 
+func (s DefaultEmberPollService) Reconnect() {
+	for _, hostData := range s.Cfg.RunTime.EmberGpios {
+		if !hostData.Conn.IsConnected() {
+			hostData.Conn.Connect()
+		}
+	}
+}
+
 func (s DefaultEmberPollService) CloseEmberConn() {
 	for host, clientConfig := range s.Cfg.RunTime.EmberGpios {
 		clientConfig.Conn.Disconnect()
@@ -75,6 +83,7 @@ func (s DefaultEmberPollService) PollRun() {
 	for host, clientConfig := range s.Cfg.RunTime.EmberGpios {
 		data, err := clientConfig.Conn.GetByType("node", clientConfig.EntryPath)
 		if err != nil {
+			s.Reconnect()
 			logger.Error(fmt.Sprintf("Could not get data from Ember provider. Host: %v, Port: %v", host, clientConfig.Port), err)
 			continue
 		} else {
