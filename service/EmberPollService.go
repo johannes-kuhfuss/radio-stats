@@ -48,9 +48,12 @@ func (s DefaultEmberPollService) InitEmberConn() {
 }
 
 func (s DefaultEmberPollService) Reconnect() {
-	for _, hostData := range s.Cfg.RunTime.EmberGpios {
+	for host, hostData := range s.Cfg.RunTime.EmberGpios {
 		if !hostData.Conn.IsConnected() {
-			hostData.Conn.Connect()
+			logger.Warnf("%v was disconnected. Trying to reconnec...", host)
+			if err := hostData.Conn.Connect(); err != nil {
+				logger.Errorf("Couldn not reconnect ot host %v. %v", host, err)
+			}
 		}
 	}
 }
