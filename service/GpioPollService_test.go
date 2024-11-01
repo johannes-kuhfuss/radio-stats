@@ -24,11 +24,12 @@ func setupGpioTest(retError bool, setCookie bool, bodyData string) func() {
 	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		expire := time.Now().AddDate(0, 0, 1)
 		cookie := http.Cookie{
-			Name:    "testcookie",
-			Value:   "testcookie",
-			Path:    "/",
-			Domain:  "localhost",
-			Expires: expire,
+			Name:     "testcookie",
+			Value:    "testcookie",
+			Path:     "/",
+			Domain:   "localhost",
+			Expires:  expire,
+			HttpOnly: true,
 		}
 		if setCookie {
 			http.SetCookie(w, &cookie)
