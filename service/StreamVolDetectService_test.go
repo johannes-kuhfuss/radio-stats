@@ -15,6 +15,10 @@ var (
 	volService DefaultStreamVolDetectService
 )
 
+const (
+	streamingUrl = "https://streaming.fueralle.org/coloradio_48.aac"
+)
+
 func TestListenNoUrlSetsRunToFalse(t *testing.T) {
 	volService = NewStreamVolDetectService(&volCfg)
 	volService.Cfg.StreamScrape.Url = ""
@@ -36,7 +40,7 @@ func TestRunFfmpegErrorExecReturnsNil(t *testing.T) {
 func TestRunFfmpegLocalExecReturnsResult(t *testing.T) {
 	volService = NewStreamVolDetectService(&volCfg)
 	volService.Cfg.StreamVolDetect.FfmpegExe = "../prog/ffmpeg.exe"
-	volService.Cfg.StreamVolDetect.Urls = []string{"https://streaming.fueralle.org/coloradio_48.aac"}
+	volService.Cfg.StreamVolDetect.Urls = []string{streamingUrl}
 	volService.Cfg.StreamVolDetect.Duration = 2
 
 	result := volService.runFfmpeg(volService.Cfg.StreamVolDetect.Urls[0])
@@ -64,8 +68,8 @@ func TestUpdateMetricsUpdatesMetrics(t *testing.T) {
 		"streamName",
 	})
 
-	volService.updateVolMetrics(lines, "https://streaming.fueralle.org/coloradio_48.aac")
-	assert.EqualValues(t, -0.3, volService.Cfg.RunTime.StreamVolumes.Vols["https://streaming.fueralle.org/coloradio_48.aac"])
+	volService.updateVolMetrics(lines, streamingUrl)
+	assert.EqualValues(t, -0.3, volService.Cfg.RunTime.StreamVolumes.Vols[streamingUrl])
 }
 
 func TestListenRunUpdateCounts(t *testing.T) {
