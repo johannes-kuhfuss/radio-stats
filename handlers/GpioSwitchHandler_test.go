@@ -29,7 +29,7 @@ func setupSwitchUiTest() func() {
 	}
 }
 
-func Test_validateReq_InvalidXpoint_ReturnsError(t *testing.T) {
+func TestValidateReqInvalidXpointReturnsError(t *testing.T) {
 	tearDown := setupSwitchUiTest()
 	defer tearDown()
 	swreq := dto.GpioSwitchRequest{
@@ -41,7 +41,7 @@ func Test_validateReq_InvalidXpoint_ReturnsError(t *testing.T) {
 	assert.EqualValues(t, 400, err.StatusCode())
 }
 
-func Test_validateReq_ValidXpoint_ReturnsNoError(t *testing.T) {
+func TestValidateReqValidXpointReturnsNoError(t *testing.T) {
 	tearDown := setupSwitchUiTest()
 	defer tearDown()
 	outList := make(map[string]int)
@@ -54,7 +54,7 @@ func Test_validateReq_ValidXpoint_ReturnsNoError(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func Test_SwitchXpoint_NoXpoint_ReturnsError(t *testing.T) {
+func TestSwitchXpointNoXpointReturnsError(t *testing.T) {
 	tearDown := setupSwitchUiTest()
 	defer tearDown()
 	router.POST("/switch", sh.SwitchXpoint)
@@ -67,7 +67,7 @@ func Test_SwitchXpoint_NoXpoint_ReturnsError(t *testing.T) {
 	assert.EqualValues(t, "{\"message\":\"xpoint with name  does not exist\",\"statuscode\":400,\"causes\":null}", string(result))
 }
 
-func Test_SwitchXpoint_NoSwitch_ReturnsError(t *testing.T) {
+func TestSwitchXpointNoSwitchReturnsError(t *testing.T) {
 	tearDown := setupSwitchUiTest()
 	defer tearDown()
 	outList := make(map[string]int)

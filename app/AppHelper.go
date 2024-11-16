@@ -29,22 +29,31 @@ func basicAuth(adminuser string, adminpwhash string) gin.HandlerFunc {
 func checkAuth(adminuser string, adminpwhash string, authHeaders []string) (found bool, user string) {
 	for _, header := range authHeaders {
 		if strings.HasPrefix(header, "Basic ") {
-			b64Creds := header[6:]
-			creds, err := base64.StdEncoding.DecodeString(b64Creds)
-			if err == nil {
-				parts := strings.Split(string(creds), ":")
-				if len(parts) == 2 {
-					user := parts[0]
-					pass := parts[1]
-					if user == adminuser {
-						err := bcrypt.CompareHashAndPassword([]byte(adminpwhash), []byte(pass))
-						if err == nil {
-							return true, user
-						}
+			parts, err := decodeBasicAuth(header)
+			if err != nil {
+				return false, ""
+			}
+			if len(parts) == 2 {
+				user := parts[0]
+				pass := parts[1]
+				if user == adminuser {
+					err := bcrypt.CompareHashAndPassword([]byte(adminpwhash), []byte(pass))
+					if err == nil {
+						return true, user
 					}
 				}
 			}
 		}
 	}
 	return false, ""
+}
+
+func decodeBasicAuth(header string) (parts []string, e error) {
+	b64Creds := header[6:]
+	creds, err := base64.StdEncoding.DecodeString(b64Creds)
+	if err != nil {
+		return nil, err
+	}
+	parts = strings.Split(string(creds), ":")
+	return parts, nil
 }

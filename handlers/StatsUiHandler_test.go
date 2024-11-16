@@ -29,7 +29,7 @@ func setupStatsUiTest() func() {
 	}
 }
 
-func Test_StatusPage_Returns_Status(t *testing.T) {
+func TestStatusPageReturnsStatus(t *testing.T) {
 	teardown := setupStatsUiTest()
 	defer teardown()
 	router.GET("/", uh.StatusPage)
@@ -42,7 +42,7 @@ func Test_StatusPage_Returns_Status(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func Test_AboutPage_Returns_About(t *testing.T) {
+func TestAboutPageReturnsAbout(t *testing.T) {
 	teardown := setupStatsUiTest()
 	defer teardown()
 	router.GET("/about", uh.AboutPage)
@@ -55,7 +55,7 @@ func Test_AboutPage_Returns_About(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func Test_SwitchPage_Returns_Switch(t *testing.T) {
+func TestSwitchPageReturnsSwitch(t *testing.T) {
 	teardown := setupStatsUiTest()
 	defer teardown()
 	router.GET("/switch", uh.SwitchPage)
