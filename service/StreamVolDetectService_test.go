@@ -15,7 +15,7 @@ var (
 	volService DefaultStreamVolDetectService
 )
 
-func Test_Listen_NoUrl_SetsRunToFalse(t *testing.T) {
+func TestListenNoUrlSetsRunToFalse(t *testing.T) {
 	volService = NewStreamVolDetectService(&volCfg)
 	volService.Cfg.StreamScrape.Url = ""
 
@@ -24,7 +24,7 @@ func Test_Listen_NoUrl_SetsRunToFalse(t *testing.T) {
 	assert.EqualValues(t, false, volCfg.RunTime.RunScrape)
 }
 
-func Test_runFfmpeg_ErrorExec_ReturnsNil(t *testing.T) {
+func TestRunFfmpegErrorExecReturnsNil(t *testing.T) {
 	volService = NewStreamVolDetectService(&volCfg)
 	volService.Cfg.StreamVolDetect.FfmpegExe = "i-dont-exist"
 
@@ -33,7 +33,7 @@ func Test_runFfmpeg_ErrorExec_ReturnsNil(t *testing.T) {
 	assert.Nil(t, result)
 }
 
-func Test_runFfmpeg_LocalExec_ReturnsResult(t *testing.T) {
+func TestRunFfmpegLocalExecReturnsResult(t *testing.T) {
 	volService = NewStreamVolDetectService(&volCfg)
 	volService.Cfg.StreamVolDetect.FfmpegExe = "../prog/ffmpeg.exe"
 	volService.Cfg.StreamVolDetect.Urls = []string{"https://streaming.fueralle.org/coloradio_48.aac"}
@@ -45,7 +45,7 @@ func Test_runFfmpeg_LocalExec_ReturnsResult(t *testing.T) {
 	assert.Contains(t, result[0], "ffmpeg version")
 }
 
-func Test_updateMetrics_UpdatesMetrics(t *testing.T) {
+func TestUpdateMetricsUpdatesMetrics(t *testing.T) {
 	var lines []string
 	volService = NewStreamVolDetectService(&volCfg)
 	f, _ := os.Open("../samples/ffmpeg_sample_result.txt")
@@ -68,7 +68,7 @@ func Test_updateMetrics_UpdatesMetrics(t *testing.T) {
 	assert.EqualValues(t, -0.3, volService.Cfg.RunTime.StreamVolumes.Vols["https://streaming.fueralle.org/coloradio_48.aac"])
 }
 
-func Test_ListenRun_UpdateCounts(t *testing.T) {
+func TestListenRunUpdateCounts(t *testing.T) {
 	volService = NewStreamVolDetectService(&volCfg)
 	volService.Cfg.Metrics.StreamVolDetectCount = prometheus.NewCounter(prometheus.CounterOpts{
 		Namespace: "Coloradio",

@@ -48,7 +48,7 @@ func setupGpioTest(retError bool, setCookie bool, bodyData string) func() {
 	}
 }
 
-func Test_Poll_NoHost_SetsRunPollFalse(t *testing.T) {
+func TestPollNoHostSetsRunPollFalse(t *testing.T) {
 	teardown := setupGpioTest(false, true, "")
 	defer teardown()
 	gpioService = NewGpioPollService(&gpioCfg)
@@ -59,7 +59,7 @@ func Test_Poll_NoHost_SetsRunPollFalse(t *testing.T) {
 	assert.EqualValues(t, false, gpioCfg.RunTime.RunGpioPoll)
 }
 
-func Test_LoginToGpio_CannotConnect_ReturnsFalse(t *testing.T) {
+func TestLoginToGpioCannotConnectReturnsFalse(t *testing.T) {
 	teardown := setupGpioTest(true, false, "")
 	defer teardown()
 
@@ -68,7 +68,7 @@ func Test_LoginToGpio_CannotConnect_ReturnsFalse(t *testing.T) {
 	assert.EqualValues(t, false, success)
 }
 
-func Test_LoginToGpio_NoCookie_ReturnsFalse(t *testing.T) {
+func TestLoginToGpioNoCookieReturnsFalse(t *testing.T) {
 	teardown := setupGpioTest(false, false, "")
 	defer teardown()
 
@@ -77,7 +77,7 @@ func Test_LoginToGpio_NoCookie_ReturnsFalse(t *testing.T) {
 	assert.EqualValues(t, false, success)
 }
 
-func Test_LoginToGpio_ReturnsTrue(t *testing.T) {
+func TestLoginToGpioReturnsTrue(t *testing.T) {
 	teardown := setupGpioTest(false, true, "")
 	defer teardown()
 
@@ -86,7 +86,7 @@ func Test_LoginToGpio_ReturnsTrue(t *testing.T) {
 	assert.EqualValues(t, true, success)
 }
 
-func Test_PollRun_NoData_ReturnsError(t *testing.T) {
+func TestPollRunNoDataReturnsError(t *testing.T) {
 	teardown := setupGpioTest(false, true, "")
 	defer teardown()
 	service := NewGpioPollService(&gpioCfg)
@@ -97,31 +97,31 @@ func Test_PollRun_NoData_ReturnsError(t *testing.T) {
 	assert.EqualValues(t, "EOF", err.Error())
 }
 
-func Test_stringToBool_ReturnsFalse(t *testing.T) {
+func TestStringToBoolReturnsFalse(t *testing.T) {
 	res := stringToBool("0")
 
 	assert.EqualValues(t, false, res)
 }
 
-func Test_stringToBool_ReturnsTrue(t *testing.T) {
+func TestStringToBoolReturnsTrue(t *testing.T) {
 	res := stringToBool("1")
 
 	assert.EqualValues(t, true, res)
 }
 
-func Test_boolToInt_ReturnsOne(t *testing.T) {
+func TestBoolToIntReturnsOne(t *testing.T) {
 	res := boolToInt(true)
 
 	assert.EqualValues(t, 1, res)
 }
 
-func Test_boolToInt_ReturnsZero(t *testing.T) {
+func TestBoolToIntReturnsZero(t *testing.T) {
 	res := boolToInt(false)
 
 	assert.EqualValues(t, 0, res)
 }
 
-func Test_GetXmlFromPollUrl_GetReqFails_ReturnsError(t *testing.T) {
+func TestGetXmlFromPollUrlGetReqFailsReturnsError(t *testing.T) {
 	teardown := setupGpioTest(true, false, "")
 	defer teardown()
 
@@ -133,7 +133,7 @@ func Test_GetXmlFromPollUrl_GetReqFails_ReturnsError(t *testing.T) {
 	assert.EqualValues(t, "URl not found", err.Error())
 }
 
-func Test_GetXmlFromPollUrl_WrongData_ReturnsError(t *testing.T) {
+func TestGetXmlFromPollUrlWrongDataReturnsError(t *testing.T) {
 	teardown := setupGpioTest(false, false, "abcdefg")
 	defer teardown()
 
@@ -145,7 +145,7 @@ func Test_GetXmlFromPollUrl_WrongData_ReturnsError(t *testing.T) {
 	assert.EqualValues(t, "EOF", err.Error())
 }
 
-func Test_GetXmlFromPollUrl_NoError_ReturnsData(t *testing.T) {
+func TestGetXmlFromPollUrlNoErrorReturnsData(t *testing.T) {
 	xmlData, _ := os.ReadFile("../samples/gpioStat_sample.txt")
 
 	teardown := setupGpioTest(false, false, string(xmlData))
@@ -160,7 +160,7 @@ func Test_GetXmlFromPollUrl_NoError_ReturnsData(t *testing.T) {
 	assert.EqualValues(t, "0", data.In[22])
 }
 
-func Test_mapState_MapsCorrectly(t *testing.T) {
+func TestMapStateMapsCorrectly(t *testing.T) {
 	var gpioState domain.DevStat
 	gpioState.In = append(gpioState.In, "1")
 	gpioState.In = append(gpioState.In, "0")

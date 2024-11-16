@@ -1,15 +1,13 @@
 # Build container
 FROM alpine:latest
-RUN apk -U upgrade --no-cache && apk add --no-cache go git && rm -rf /var/cache/apk/*
-RUN mkdir /build
+RUN apk -U upgrade --no-cache && apk add --no-cache go git && rm -rf /var/cache/apk/* && mkdir /build
 WORKDIR /build
 RUN git clone https://github.com/johannes-kuhfuss/radio-stats.git
 WORKDIR /build/radio-stats
 RUN go build -o /build/radio-stats/radio-stats /build/radio-stats/main.go
 # Run container
 FROM alpine:latest
-RUN apk -U upgrade --no-cache && apk add --no-cache ffmpeg && rm -rf /var/cache/apk/*
-RUN mkdir /app
+RUN apk -U upgrade --no-cache && apk add --no-cache ffmpeg && rm -rf /var/cache/apk/* && mkdir /app
 WORKDIR /app
 COPY --from=0 /build/radio-stats/radio-stats /app/radio-stats
 COPY --from=0 /build/radio-stats/templates /app/templates

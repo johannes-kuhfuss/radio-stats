@@ -20,17 +20,14 @@ var (
 	scrapeService      DefaultStreamScrapeService
 )
 
-func setupScrapeTest() func() {
+func setupScrapeTest() {
 	scrapeRecorder = httptest.NewRecorder()
 	fc, _ := os.ReadFile("../samples/icecast_response.txt")
 	scrapeResponseBody = string(fc)
-	return func() {
-	}
 }
 
-func Test_GetDatafromUrl_NoUrl_ReturnsError(t *testing.T) {
-	teardown := setupScrapeTest()
-	defer teardown()
+func TestGetDatafromUrlNoUrlReturnsError(t *testing.T) {
+	setupScrapeTest()
 
 	body, err := GetDataFromStreamUrl("")
 
@@ -39,9 +36,8 @@ func Test_GetDatafromUrl_NoUrl_ReturnsError(t *testing.T) {
 	assert.EqualValues(t, "Get \"\": unsupported protocol scheme \"\"", err.Error())
 }
 
-func Test_GetDatafromUrl_ReturnsNoError(t *testing.T) {
-	teardown := setupScrapeTest()
-	defer teardown()
+func TestGetDatafromUrlReturnsNoError(t *testing.T) {
+	setupScrapeTest()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, scrapeResponseBody)
@@ -54,14 +50,14 @@ func Test_GetDatafromUrl_ReturnsNoError(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func Test_sanitize(t *testing.T) {
+func TestSanitize(t *testing.T) {
 	testString := "abc - def"
 	saniString := sanitize([]byte(testString))
 	assert.NotNil(t, saniString)
 	assert.EqualValues(t, "abcnulldef", saniString)
 }
 
-func Test_unMarshall_Returns_Error(t *testing.T) {
+func TestUnMarshallReturnsError(t *testing.T) {
 	body := "nojson"
 	_, err := unMarshall(body)
 
@@ -69,7 +65,7 @@ func Test_unMarshall_Returns_Error(t *testing.T) {
 	assert.EqualValues(t, "invalid character 'o' in literal null (expecting 'u')", err.Error())
 }
 
-func Test_unMarshall_Returns_NoError(t *testing.T) {
+func TestUnMarshallReturnsNoError(t *testing.T) {
 	stats := domain.IceCastStats{
 		Icestats: struct {
 			Admin              string "json:\"admin\""
@@ -115,7 +111,7 @@ func Test_unMarshall_Returns_NoError(t *testing.T) {
 	assert.EqualValues(t, stats, body)
 }
 
-func Test_Scrape_NoUrl_DoesntScrape(t *testing.T) {
+func TestScrapeNoUrlDoesntScrape(t *testing.T) {
 	var cfg config.AppConfig
 	scrapeService = NewStreamScrapeService(&cfg)
 	scrapeService.Scrape()
@@ -123,11 +119,10 @@ func Test_Scrape_NoUrl_DoesntScrape(t *testing.T) {
 	assert.EqualValues(t, false, cfg.RunTime.RunScrape)
 }
 
-func Test_ScrapeRun_LocalUrl_UpdatesMetrics(t *testing.T) {
+func TestScrapeRunLocalUrlUpdatesMetrics(t *testing.T) {
 	var cfg config.AppConfig
 
-	teardown := setupScrapeTest()
-	defer teardown()
+	setupScrapeTest()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, scrapeResponseBody)
