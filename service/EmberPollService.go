@@ -89,19 +89,22 @@ func (s DefaultEmberPollService) PollRun() {
 			s.Reconnect()
 			logger.Error(fmt.Sprintf("Could not get data from Ember provider. Host: %v, Port: %v", host, clientConfig.Port), err)
 			continue
-		} else {
-			if err := json.Unmarshal(data, &emberData); err != nil {
-				logger.Error(fmt.Sprintf("Could not marshall data from Ember provider. Host: %v", host), err)
-				continue
-			}
-			for e, d := range emberData {
-				if misc.SliceContainsString(clientConfig.GPIOs, e) {
-					if d["description"] != nil && d["value"] != nil {
-						metricName := clientConfig.MetricsPrefix + d["description"].(string)
-						metricsValue := d["value"].(bool)
-						s.Cfg.Metrics.GpioStateGauge.WithLabelValues(metricName).Set(float64(boolToInt(metricsValue)))
-					}
-				}
+		}
+		if err := json.Unmarshal(data, &emberData); err != nil {
+			logger.Error(fmt.Sprintf("Could not marshall data from Ember provider. Host: %v", host), err)
+			continue
+		}
+		s.updateMetrics(clientConfig, emberData)
+	}
+}
+
+func (s DefaultEmberPollService) updateMetrics(clientConfig config.EmberConfig, emberData map[string]map[string]interface{}) {
+	for e, d := range emberData {
+		if misc.SliceContainsString(clientConfig.GPIOs, e) {
+			if d["description"] != nil && d["value"] != nil {
+				metricName := clientConfig.MetricsPrefix + d["description"].(string)
+				metricsValue := d["value"].(bool)
+				s.Cfg.Metrics.GpioStateGauge.WithLabelValues(metricName).Set(float64(boolToInt(metricsValue)))
 			}
 		}
 	}

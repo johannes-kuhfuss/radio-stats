@@ -3,6 +3,7 @@ package app
 
 import (
 	"encoding/base64"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -33,14 +34,10 @@ func checkAuth(adminuser string, adminpwhash string, authHeaders []string) (foun
 			if err != nil {
 				return false, ""
 			}
-			if len(parts) == 2 {
-				user := parts[0]
-				pass := parts[1]
-				if user == adminuser {
-					err := bcrypt.CompareHashAndPassword([]byte(adminpwhash), []byte(pass))
-					if err == nil {
-						return true, user
-					}
+			if parts[0] == adminuser {
+				err := bcrypt.CompareHashAndPassword([]byte(adminpwhash), []byte(parts[1]))
+				if err == nil {
+					return true, user
 				}
 			}
 		}
@@ -55,5 +52,8 @@ func decodeBasicAuth(header string) (parts []string, e error) {
 		return nil, err
 	}
 	parts = strings.Split(string(creds), ":")
-	return parts, nil
+	if len(parts) == 2 {
+		return parts, nil
+	}
+	return nil, errors.New("must be two parts")
 }

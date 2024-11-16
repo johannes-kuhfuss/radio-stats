@@ -19,6 +19,10 @@ var (
 	svc service.DefaultGpioSwitchService
 )
 
+const (
+	switchUrl = "/switch"
+)
+
 func setupSwitchUiTest() func() {
 	svc = service.NewGpioSwitchService(&cfg)
 	sh = NewGpioSwitchHandler(&cfg, svc)
@@ -57,8 +61,8 @@ func TestValidateReqValidXpointReturnsNoError(t *testing.T) {
 func TestSwitchXpointNoXpointReturnsError(t *testing.T) {
 	tearDown := setupSwitchUiTest()
 	defer tearDown()
-	router.POST("/switch", sh.SwitchXpoint)
-	request, _ := http.NewRequest(http.MethodPost, "/switch", nil)
+	router.POST(switchUrl, sh.SwitchXpoint)
+	request, _ := http.NewRequest(http.MethodPost, switchUrl, nil)
 
 	router.ServeHTTP(recorder, request)
 
@@ -73,10 +77,10 @@ func TestSwitchXpointNoSwitchReturnsError(t *testing.T) {
 	outList := make(map[string]int)
 	outList["exists"] = 1
 	cfg.Gpio.OutConfig = outList
-	router.POST("/switch", sh.SwitchXpoint)
+	router.POST(switchUrl, sh.SwitchXpoint)
 	cmd := url.Values{}
 	cmd.Set("xpoint", "exists")
-	request, _ := http.NewRequest(http.MethodPost, "/switch", strings.NewReader(cmd.Encode()))
+	request, _ := http.NewRequest(http.MethodPost, switchUrl, strings.NewReader(cmd.Encode()))
 	request.Header.Set("Content-type", "application/x-www-form-urlencoded")
 
 	router.ServeHTTP(recorder, request)
