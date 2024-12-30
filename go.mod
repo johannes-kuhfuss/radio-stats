@@ -19,7 +19,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-require github.com/johannes-kuhfuss/emberplus v1.0.3
+require github.com/johannes-kuhfuss/emberplus v1.0.4
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -50,6 +50,6 @@ require (
 	golang.org/x/arch v0.12.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
-	google.golang.org/protobuf v1.36.0 // indirect
+	google.golang.org/protobuf v1.36.1 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 )
