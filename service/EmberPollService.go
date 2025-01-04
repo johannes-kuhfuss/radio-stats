@@ -38,7 +38,7 @@ func (s DefaultEmberPollService) InitEmberConn() {
 		emberClientConfig.GPIOs = hostData.GPIOs
 		emberClient, err := emberclient.NewEmberClient(host, emberClientConfig.Port)
 		if err != nil {
-			logger.Error(fmt.Sprintf("could not creaet Ember connection to host %v on port %v", host, emberClientConfig.Port), err)
+			logger.Error(fmt.Sprintf("could not create Ember connection to host %v on port %v", host, emberClientConfig.Port), err)
 		} else {
 			emberClientConfig.Conn = emberClient
 			emberClientConfig.Conn.Connect()
@@ -49,11 +49,9 @@ func (s DefaultEmberPollService) InitEmberConn() {
 
 func (s DefaultEmberPollService) Reconnect() {
 	for host, hostData := range s.Cfg.RunTime.EmberGpios {
-		if !hostData.Conn.IsConnected() {
-			logger.Warnf("%v was disconnected. Trying to reconnec...", host)
-			if err := hostData.Conn.Connect(); err != nil {
-				logger.Errorf("Couldn not reconnect ot host %v. %v", host, err)
-			}
+		hostData.Conn.Disconnect()
+		if err := hostData.Conn.Connect(); err != nil {
+			logger.Errorf("Could not reconnect to host %v. %v", host, err)
 		}
 	}
 }
