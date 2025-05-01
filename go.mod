@@ -1,6 +1,6 @@
 module github.com/johannes-kuhfuss/radio-stats
 
-go 1.24.0
+go 1.24.2
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -19,7 +19,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-require github.com/johannes-kuhfuss/emberplus v1.0.7
+require github.com/johannes-kuhfuss/emberplus v1.0.8
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
