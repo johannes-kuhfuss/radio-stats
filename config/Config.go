@@ -109,13 +109,13 @@ type AppConfig struct {
 	StreamScrape struct {
 		Url                string `envconfig:"STREAM_SCRAPE_URL"`
 		IntervalSec        int    `envconfig:"STREAM_SCRAPE_INTERVAL_SEC" default:"5"`
-		NumExpected        int    `envconfig:"NUM_STREAMS_EXPECTED" default:"5"`
-		ExpectedServerName string `envconfig:"EXPECTED_SERVER_NAME" default:"coloRadio"`
+		NumExpected        int    `envconfig:"NUM_STREAMS_EXPECTED" default:"4"`
+		ExpectedServerName string `envconfig:"EXPECTED_SERVER_NAME" default:"ignore"` //was: "coloRadio"
 	}
 	StreamVolDetect struct {
 		Urls        []string `envconfig:"STREAM_VOLDETECT_URLS"`
 		IntervalSec int      `envconfig:"STREAM_VOLDETECT_INTERVAL_SEC" default:"5"`
-		Duration    int      `envconfig:"STREAM_VOLDETECT_DURATION" default:"2"`
+		Duration    int      `envconfig:"STREAM_VOLDETECT_DURATION" default:"4"`
 		FfmpegExe   string   `envconfig:"STREAM_VOLDETECT_FFMPEG" default:"/usr/bin/ffmpeg"`
 	}
 	Gpio struct {
