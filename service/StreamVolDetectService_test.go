@@ -16,7 +16,7 @@ var (
 )
 
 const (
-	streamingUrl = "https://streaming.fueralle.org/coloradio_48.aac"
+	streamingUrl = "https://streaming.fueralle.org/coloradio_56.mp3"
 )
 
 func TestListenNoUrlSetsRunToFalse(t *testing.T) {
