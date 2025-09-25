@@ -1,6 +1,6 @@
 module github.com/johannes-kuhfuss/radio-stats
 
-go 1.24.5
+go 1.24.6
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
