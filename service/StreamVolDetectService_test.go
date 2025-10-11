@@ -41,7 +41,7 @@ func TestRunFfmpegLocalExecReturnsResult(t *testing.T) {
 	volService = NewStreamVolDetectService(&volCfg)
 	volService.Cfg.StreamVolDetect.FfmpegExe = "../prog/ffmpeg.exe"
 	volService.Cfg.StreamVolDetect.Urls = []string{streamingUrl}
-	volService.Cfg.StreamVolDetect.Duration = 2
+	volService.Cfg.StreamVolDetect.Duration = 1
 
 	result := volService.runFfmpeg(volService.Cfg.StreamVolDetect.Urls[0])
 
