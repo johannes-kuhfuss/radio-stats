@@ -36,8 +36,8 @@ type PinConfigDecoder map[int]PinConfig
 // Decode decodes the configuration into pin configuration data
 func (pdd *PinConfigDecoder) Decode(value string) error {
 	gpioData := map[int]PinConfig{}
-	pins := strings.Split(value, ";")
-	for _, pin := range pins {
+	pins := strings.SplitSeq(value, ";")
+	for pin := range pins {
 		pinData := PinConfig{}
 		kvpair := strings.Split(pin, "=")
 		if len(kvpair) != 2 {
@@ -71,8 +71,8 @@ type EmberConfigDecoder map[string]EmberConfig
 // Decode decodes the configuration into Ember configuration data
 func (ed *EmberConfigDecoder) Decode(value string) error {
 	emberData := map[string]EmberConfig{}
-	hosts := strings.Split(value, ";")
-	for _, host := range hosts {
+	hosts := strings.SplitSeq(value, ";")
+	for host := range hosts {
 		hostData := EmberConfig{}
 		kvpair := strings.Split(host, "=")
 		if len(kvpair) != 2 {

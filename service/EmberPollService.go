@@ -80,7 +80,7 @@ func (s DefaultEmberPollService) Poll() {
 }
 
 func (s DefaultEmberPollService) PollRun() {
-	var emberData map[string]map[string]interface{}
+	var emberData map[string]map[string]any
 	for host, clientConfig := range s.Cfg.RunTime.EmberGpios {
 		data, err := clientConfig.Conn.GetByType("node", clientConfig.EntryPath)
 		if err != nil {
@@ -96,7 +96,7 @@ func (s DefaultEmberPollService) PollRun() {
 	}
 }
 
-func (s DefaultEmberPollService) updateMetrics(clientConfig config.EmberConfig, emberData map[string]map[string]interface{}) {
+func (s DefaultEmberPollService) updateMetrics(clientConfig config.EmberConfig, emberData map[string]map[string]any) {
 	for e, d := range emberData {
 		if misc.SliceContainsString(clientConfig.GPIOs, e) {
 			if d["description"] != nil && d["value"] != nil {
