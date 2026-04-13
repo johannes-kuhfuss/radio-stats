@@ -13,7 +13,7 @@ import (
 	"github.com/johannes-kuhfuss/services_utils/logger"
 )
 
-type GpioSwitchService interface {
+type GpioSwitcher interface {
 	Switch(string) api_error.ApiErr
 }
 
@@ -70,7 +70,7 @@ func (s DefaultGpioSwitchService) Switch(xPoint string) (err api_error.ApiErr) {
 
 	// Toggle twice
 	req, _ := http.NewRequest("GET", urlString, nil)
-	
+
 	if _, reqErr := httpGpioSwitchClient.Do(req); reqErr != nil {
 		msg := "Error while switching xpoint (1/2)"
 		logger.Error(msg, reqErr)

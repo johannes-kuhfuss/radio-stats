@@ -12,7 +12,7 @@ import (
 	"github.com/johannes-kuhfuss/services_utils/misc"
 )
 
-type EmberPollService interface {
+type EmberPoller interface {
 	Poll()
 }
 

@@ -15,11 +15,11 @@ import (
 
 type GpioSwitchHandler struct {
 	Cfg *config.AppConfig
-	Svc service.GpioSwitchService
+	Svc service.GpioSwitcher
 }
 
 // NewGpioSwitchHandler sets up a new handler and injects its dependencies
-func NewGpioSwitchHandler(cfg *config.AppConfig, svc service.GpioSwitchService) GpioSwitchHandler {
+func NewGpioSwitchHandler(cfg *config.AppConfig, svc service.GpioSwitcher) GpioSwitchHandler {
 	return GpioSwitchHandler{
 		Cfg: cfg,
 		Svc: svc,

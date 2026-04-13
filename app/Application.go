@@ -34,7 +34,7 @@ var (
 	streamScrapeService    service.DefaultStreamScrapeService
 	gpioPollService        service.DefaultGpioPollService
 	gpioSwitchService      service.DefaultGpioSwitchService
-	streamVolDetectService service.StreamVolDetectService
+	streamVolDetectService service.StreamVolDetector
 	emberPollService       service.DefaultEmberPollService
 )
 
@@ -202,8 +202,8 @@ func cleanUp() {
 	cfg.RunTime.RunEmberPoll = false
 	emberPollService.CloseEmberConn()
 	ctx, cancel = context.WithTimeout(context.Background(), shutdownTime)
+	defer cancel()
 	defer func() {
 		logger.Info("Done cleaning up")
-		cancel()
 	}()
 }

@@ -27,7 +27,7 @@ func basicAuth(adminuser string, adminpwhash string) gin.HandlerFunc {
 }
 
 // checkAuth validates user name and password against the configuration
-func checkAuth(adminuser string, adminpwhash string, authHeaders []string) (found bool, user string) {
+func checkAuth(adminuser, adminpwhash string, authHeaders []string) (found bool, user string) {
 	for _, header := range authHeaders {
 		if strings.HasPrefix(header, "Basic ") {
 			parts, err := decodeBasicAuth(header)

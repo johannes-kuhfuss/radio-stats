@@ -14,7 +14,7 @@ import (
 	"github.com/johannes-kuhfuss/services_utils/logger"
 )
 
-type StreamVolDetectService interface {
+type StreamVolDetector interface {
 	Listen()
 }
 

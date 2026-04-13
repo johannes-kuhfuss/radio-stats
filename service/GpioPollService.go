@@ -16,7 +16,7 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
-type GpioPollService interface {
+type GpioPoller interface {
 	Poll()
 }
 
