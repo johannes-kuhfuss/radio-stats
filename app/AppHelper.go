@@ -12,7 +12,7 @@ import (
 )
 
 // basicAuth checks the basic auth headers for valid credentials
-func basicAuth(adminuser string, adminpwhash string) gin.HandlerFunc {
+func basicAuth(adminuser, adminpwhash string) gin.HandlerFunc {
 	realm := "Basic realm=Authorization Required"
 	return func(c *gin.Context) {
 		authHeaders := c.Request.Header["Authorization"]
