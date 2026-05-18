@@ -6,7 +6,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gin-gonic/gin v1.12.0
 	github.com/goccy/go-json v0.10.6
-	github.com/johannes-kuhfuss/services_utils v1.1.1
+	github.com/johannes-kuhfuss/services_utils v1.1.2
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -19,7 +19,10 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-require github.com/johannes-kuhfuss/emberplus v1.0.18
+require (
+	github.com/johannes-kuhfuss/emberplus v1.0.19
+	github.com/prometheus/client_model v0.6.2
+)
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -42,7 +45,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pelletier/go-toml/v2 v2.3.1 // indirect
-	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.67.5 // indirect
 	github.com/prometheus/procfs v0.20.1 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
