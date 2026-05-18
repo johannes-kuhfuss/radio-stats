@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/johannes-kuhfuss/emberplus/emberclient"
+	"github.com/johannes-kuhfuss/emberplus/ember"
 	"github.com/johannes-kuhfuss/services_utils/logger"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
@@ -63,7 +63,13 @@ type EmberConfig struct {
 	EntryPath     string
 	MetricsPrefix string
 	GPIOs         []string
-	Conn          *emberclient.EmberClient
+	Conn          EmberConnection
+}
+
+type EmberConnection interface {
+	Connect() error
+	Disconnect() error
+	GetByType(ember.ElementType, string) ([]byte, error)
 }
 
 type EmberConfigDecoder map[string]EmberConfig

@@ -2,12 +2,16 @@ package app
 
 import (
 	"crypto/tls"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/radio-stats/config"
 	"github.com/johannes-kuhfuss/radio-stats/service"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func TestInitServerWithoutTlsSetsHttpAddress(t *testing.T) {
@@ -57,4 +61,35 @@ func TestCleanUpStopsRuntimeLoops(t *testing.T) {
 	assert.False(t, cfg.ShouldRunGpioPoll())
 	assert.False(t, cfg.ShouldRunEmberPoll())
 	assert.NotNil(t, ctx)
+}
+
+func TestInitMetricsCanRunTwiceOnSameRegistry(t *testing.T) {
+	cfg = config.AppConfig{}
+	registry := prometheus.NewRegistry()
+
+	initMetricsWithRegisterer(registry)
+	initMetricsWithRegisterer(registry)
+
+	assert.NotNil(t, cfg.Metrics.StreamScrapeCount)
+	assert.NotNil(t, cfg.Metrics.StreamVolDetectCount)
+	assert.NotNil(t, cfg.Metrics.StreamListenerGauge)
+	assert.NotNil(t, cfg.Metrics.GpioStateGauge)
+	assert.NotNil(t, cfg.Metrics.StreamVolume)
+}
+
+func TestMapUrlsProtectsSwitchRoute(t *testing.T) {
+	cfg = config.AppConfig{}
+	hash, _ := bcrypt.GenerateFromPassword([]byte("secret"), bcrypt.MinCost)
+	cfg.Server.AdminUserName = "admin"
+	cfg.Server.AdminPasswordHash = string(hash)
+	cfg.Gin.TemplatePath = "../templates"
+	initRouter()
+	wireApp()
+	mapUrls()
+	recorder := httptest.NewRecorder()
+	request, _ := http.NewRequest(http.MethodGet, "/switch", nil)
+
+	cfg.RunTime.Router.ServeHTTP(recorder, request)
+
+	assert.EqualValues(t, http.StatusUnauthorized, recorder.Code)
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/goccy/go-json"
@@ -48,6 +49,19 @@ func TestGetDatafromUrlReturnsNoError(t *testing.T) {
 
 	assert.NotNil(t, body)
 	assert.Nil(t, err)
+}
+
+func TestGetDatafromUrlHttpErrorReturnsError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	body, err := GetDataFromStreamUrl(server.URL)
+
+	assert.Nil(t, body)
+	assert.NotNil(t, err)
+	assert.EqualValues(t, "stream scrape host returned status 500 Internal Server Error", err.Error())
 }
 
 func TestSanitize(t *testing.T) {
@@ -144,11 +158,28 @@ func TestScrapeRunLocalUrlUpdatesMetrics(t *testing.T) {
 	}, []string{
 		"streamName",
 	})
-	prometheus.MustRegister(cfg.Metrics.StreamListenerGauge)
-	prometheus.MustRegister(cfg.Metrics.StreamScrapeCount)
-
 	scrapeService = NewStreamScrapeService(&cfg)
 	scrapeService.ScrapeRun()
 
 	assert.EqualValues(t, 1, cfg.RunTime.StreamScrapeCount)
+}
+
+func TestUpdateStreamMetricsUpdatesMatchingStreams(t *testing.T) {
+	var cfg config.AppConfig
+	setupScrapeTest()
+	cfg.StreamScrape.ExpectedServerName = "coloRadio"
+	cfg.Metrics.StreamListenerGauge = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "Coloradio",
+		Subsystem: "Streams",
+		Name:      "listener_count",
+		Help:      "Number of listeners per stream",
+	}, []string{"streamName"})
+	body := strings.ReplaceAll(sanitize([]byte(scrapeResponseBody)), `\"`, `"`)
+	streamData, err := unMarshall(body)
+	assert.Nil(t, err)
+	scrapeService = NewStreamScrapeService(&cfg)
+
+	count := scrapeService.updateStreamMetrics(streamData)
+
+	assert.EqualValues(t, 5, count)
 }

@@ -23,10 +23,6 @@ func TestSwitchNoHostReturnsError(t *testing.T) {
 }
 
 func TestSwitchSendsTwoRequests(t *testing.T) {
-	oldDelay := gpioSwitchDelay
-	defer func() { gpioSwitchDelay = oldDelay }()
-	gpioSwitchDelay = 0
-
 	var gotPaths []string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gotPaths = append(gotPaths, r.URL.String())
@@ -41,6 +37,7 @@ func TestSwitchSendsTwoRequests(t *testing.T) {
 	cfg.Gpio.Password = "pw"
 	cfg.Gpio.OutConfig = map[string]int{"studio": 7}
 	svc := NewGpioSwitchService(&cfg)
+	svc.Delay = 0
 
 	err := svc.Switch("studio")
 
@@ -51,10 +48,6 @@ func TestSwitchSendsTwoRequests(t *testing.T) {
 }
 
 func TestSwitchFirstRequestErrorReturnsError(t *testing.T) {
-	oldDelay := gpioSwitchDelay
-	defer func() { gpioSwitchDelay = oldDelay }()
-	gpioSwitchDelay = 0
-
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
@@ -65,6 +58,7 @@ func TestSwitchFirstRequestErrorReturnsError(t *testing.T) {
 	cfg.Gpio.Host = serverUrl.Host
 	cfg.Gpio.OutConfig = map[string]int{"studio": 7}
 	svc := NewGpioSwitchService(&cfg)
+	svc.Delay = 0
 
 	err := svc.Switch("studio")
 
@@ -73,10 +67,6 @@ func TestSwitchFirstRequestErrorReturnsError(t *testing.T) {
 }
 
 func TestSwitchSecondRequestErrorReturnsError(t *testing.T) {
-	oldDelay := gpioSwitchDelay
-	defer func() { gpioSwitchDelay = oldDelay }()
-	gpioSwitchDelay = 0
-
 	requests := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requests++
@@ -93,6 +83,7 @@ func TestSwitchSecondRequestErrorReturnsError(t *testing.T) {
 	cfg.Gpio.Host = serverUrl.Host
 	cfg.Gpio.OutConfig = map[string]int{"studio": 7}
 	svc := NewGpioSwitchService(&cfg)
+	svc.Delay = 0
 
 	err := svc.Switch("studio")
 
@@ -102,7 +93,7 @@ func TestSwitchSecondRequestErrorReturnsError(t *testing.T) {
 }
 
 func TestInitGpioSwitchHttpSetsTimeout(t *testing.T) {
-	InitGpioSwitchHttp()
+	client := NewGpioSwitchHttpClient()
 
-	assert.EqualValues(t, 5*time.Second, httpGpioSwitchClient.Timeout)
+	assert.EqualValues(t, 5*time.Second, client.Timeout)
 }

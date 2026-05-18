@@ -27,6 +27,8 @@ var (
 	cfg                    config.AppConfig
 	server                 http.Server
 	appEnd                 chan os.Signal
+	appCtx                 context.Context
+	appCancel              context.CancelFunc
 	ctx                    context.Context
 	cancel                 context.CancelFunc
 	statsUiHandler         handlers.StatsUiHandler
@@ -52,6 +54,7 @@ func StartApp() {
 	wireApp()
 	mapUrls()
 	RegisterForOsSignals()
+	appCtx, appCancel = context.WithCancel(context.Background())
 
 	go startServer()
 	go startStreamScraping()
@@ -176,28 +179,31 @@ func startServer() {
 
 // startStreamScraping starts the stream scraping
 func startStreamScraping() {
-	streamScrapeService.Scrape()
+	streamScrapeService.ScrapeContext(appCtx)
 }
 
 // startGpioPolling starts the GPIO polling
 func startGpioPolling() {
-	gpioPollService.Poll()
+	gpioPollService.PollContext(appCtx)
 }
 
 // startEmberPolling starts the Ember polling
 func startEmberPolling() {
-	emberPollService.Poll()
+	emberPollService.PollContext(appCtx)
 }
 
 // startStreamVolumeDetect starts the detections of stream volumes
 func startStreamVolumeDetect() {
-	streamVolDetectService.Listen()
+	streamVolDetectService.ListenContext(appCtx)
 }
 
 // cleanUp tries to clean up when the program is stopped
 func cleanUp() {
 	logger.Info("Cleaning up")
 	shutdownTime := time.Duration(cfg.Server.GracefulShutdownTime) * time.Second
+	if appCancel != nil {
+		appCancel()
+	}
 	cfg.SetRunListen(false)
 	cfg.SetRunScrape(false)
 	cfg.SetRunGpioPoll(false)

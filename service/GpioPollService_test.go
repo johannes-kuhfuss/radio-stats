@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/johannes-kuhfuss/radio-stats/config"
 	"github.com/johannes-kuhfuss/radio-stats/domain"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,6 +23,7 @@ var (
 )
 
 func setupGpioTest(retError bool, setCookie bool, bodyData string) func() {
+	gpioCfg = config.AppConfig{}
 	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		expire := time.Now().AddDate(0, 0, 1)
 		cookie := http.Cookie{
@@ -125,19 +128,17 @@ func TestGetXmlFromPollUrlGetReqFailsReturnsError(t *testing.T) {
 	teardown := setupGpioTest(true, false, "")
 	defer teardown()
 
-	cookie = &http.Cookie{}
 	data, err := GetXmlFromPollUrl(server.URL)
 
 	assert.Nil(t, data)
 	assert.NotNil(t, err)
-	assert.EqualValues(t, "URl not found", err.Error())
+	assert.EqualValues(t, "URL not found", err.Error())
 }
 
 func TestGetXmlFromPollUrlWrongDataReturnsError(t *testing.T) {
 	teardown := setupGpioTest(false, false, "abcdefg")
 	defer teardown()
 
-	cookie = &http.Cookie{}
 	data, err := GetXmlFromPollUrl(server.URL)
 
 	assert.Nil(t, data)
@@ -151,7 +152,6 @@ func TestGetXmlFromPollUrlNoErrorReturnsData(t *testing.T) {
 	teardown := setupGpioTest(false, false, string(xmlData))
 	defer teardown()
 
-	cookie = &http.Cookie{}
 	data, err := GetXmlFromPollUrl(server.URL)
 
 	assert.NotNil(t, data)
@@ -161,6 +161,7 @@ func TestGetXmlFromPollUrlNoErrorReturnsData(t *testing.T) {
 }
 
 func TestMapStateMapsCorrectly(t *testing.T) {
+	gpioCfg = config.AppConfig{}
 	var gpioState domain.DevStat
 	gpioState.In = append(gpioState.In, "1")
 	gpioState.In = append(gpioState.In, "0")
@@ -193,4 +194,35 @@ func TestMapStateMapsCorrectly(t *testing.T) {
 	assert.EqualValues(t, true, gpioCfg.RunTime.Gpios[0].State)
 	assert.EqualValues(t, false, gpioCfg.RunTime.Gpios[1].State)
 	assert.EqualValues(t, false, gpioCfg.RunTime.Gpios[2].State)
+}
+
+func TestGetXmlFromPollUrlUnauthenticatedReturnsSentinelError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer server.Close()
+
+	data, err := GetXmlFromPollUrl(server.URL)
+
+	assert.Nil(t, data)
+	assert.True(t, errors.Is(err, ErrGpioUnauthenticated))
+}
+
+func TestUpdateGpioMetrics(t *testing.T) {
+	cfg := config.AppConfig{}
+	cfg.RunTime.Gpios = []config.PinData{
+		{Name: "pin1", State: true},
+		{Name: "pin2", State: false},
+	}
+	cfg.Metrics.GpioStateGauge = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "Coloradio",
+		Subsystem: "GPIOs",
+		Name:      "status",
+		Help:      "Status of GPIO 1 (active) or 0 (inactive)",
+	}, []string{"gpioName"})
+
+	updateGpioMetrics(&cfg)
+
+	assert.EqualValues(t, 1, gaugeValue(cfg.Metrics.GpioStateGauge.WithLabelValues("pin1")))
+	assert.EqualValues(t, 0, gaugeValue(cfg.Metrics.GpioStateGauge.WithLabelValues("pin2")))
 }

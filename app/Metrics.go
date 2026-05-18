@@ -1,11 +1,20 @@
 // package app ties together all bits and pieces to start the program
 package app
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"github.com/johannes-kuhfuss/services_utils/logger"
+	"github.com/prometheus/client_golang/prometheus"
+)
+
+var metricsRegisterer prometheus.Registerer = prometheus.DefaultRegisterer
 
 // initMetrics sets up the Prometheus metrics
 func initMetrics() {
-	cfg.Metrics.StreamListenerGauge = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	initMetricsWithRegisterer(metricsRegisterer)
+}
+
+func initMetricsWithRegisterer(registerer prometheus.Registerer) {
+	streamListenerGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "Coloradio",
 		Subsystem: "Streams",
 		Name:      "listener_count",
@@ -13,13 +22,17 @@ func initMetrics() {
 	}, []string{
 		"streamName",
 	})
-	cfg.Metrics.StreamScrapeCount = prometheus.NewCounter(prometheus.CounterOpts{
+	cfg.Metrics.StreamListenerGauge = *registerGaugeVec(registerer, streamListenerGauge)
+
+	streamScrapeCount := prometheus.NewCounter(prometheus.CounterOpts{
 		Namespace: "Coloradio",
 		Subsystem: "Streams",
 		Name:      "scrape_count",
 		Help:      "Number of times stream count data was retrieved from streaming server",
 	})
-	cfg.Metrics.GpioStateGauge = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	cfg.Metrics.StreamScrapeCount = registerCounter(registerer, streamScrapeCount)
+
+	gpioStateGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "Coloradio",
 		Subsystem: "GPIOs",
 		Name:      "status",
@@ -27,13 +40,17 @@ func initMetrics() {
 	}, []string{
 		"gpioName",
 	})
-	cfg.Metrics.StreamVolDetectCount = prometheus.NewCounter(prometheus.CounterOpts{
+	cfg.Metrics.GpioStateGauge = *registerGaugeVec(registerer, gpioStateGauge)
+
+	streamVolDetectCount := prometheus.NewCounter(prometheus.CounterOpts{
 		Namespace: "Coloradio",
 		Subsystem: "Streams",
 		Name:      "volume_detection_count",
 		Help:      "Number of times volume level was detected on stream",
 	})
-	cfg.Metrics.StreamVolume = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	cfg.Metrics.StreamVolDetectCount = registerCounter(registerer, streamVolDetectCount)
+
+	streamVolume := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "Coloradio",
 		Subsystem: "Streams",
 		Name:      "volume",
@@ -41,9 +58,29 @@ func initMetrics() {
 	}, []string{
 		"streamName",
 	})
-	prometheus.MustRegister(cfg.Metrics.StreamListenerGauge)
-	prometheus.MustRegister(cfg.Metrics.StreamScrapeCount)
-	prometheus.MustRegister(cfg.Metrics.GpioStateGauge)
-	prometheus.MustRegister(cfg.Metrics.StreamVolDetectCount)
-	prometheus.MustRegister(cfg.Metrics.StreamVolume)
+	cfg.Metrics.StreamVolume = *registerGaugeVec(registerer, streamVolume)
+}
+
+func registerGaugeVec(registerer prometheus.Registerer, collector *prometheus.GaugeVec) *prometheus.GaugeVec {
+	if err := registerer.Register(collector); err != nil {
+		if alreadyRegistered, ok := err.(prometheus.AlreadyRegisteredError); ok {
+			if existing, ok := alreadyRegistered.ExistingCollector.(*prometheus.GaugeVec); ok {
+				return existing
+			}
+		}
+		logger.Error("Could not register Prometheus gauge", err)
+	}
+	return collector
+}
+
+func registerCounter(registerer prometheus.Registerer, collector prometheus.Counter) prometheus.Counter {
+	if err := registerer.Register(collector); err != nil {
+		if alreadyRegistered, ok := err.(prometheus.AlreadyRegisteredError); ok {
+			if existing, ok := alreadyRegistered.ExistingCollector.(prometheus.Counter); ok {
+				return existing
+			}
+		}
+		logger.Error("Could not register Prometheus counter", err)
+	}
+	return collector
 }

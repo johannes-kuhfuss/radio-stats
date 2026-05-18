@@ -2,6 +2,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"slices"
@@ -14,38 +15,51 @@ import (
 
 type EmberPoller interface {
 	Poll()
+	PollContext(context.Context)
 }
 
+type EmberClientFactory func(string, int) (config.EmberConnection, error)
+
 type DefaultEmberPollService struct {
-	Cfg *config.AppConfig
+	Cfg           *config.AppConfig
+	ClientFactory EmberClientFactory
 }
 
 func NewEmberPollService(cfg *config.AppConfig) DefaultEmberPollService {
 	return DefaultEmberPollService{
-		Cfg: cfg,
+		Cfg:           cfg,
+		ClientFactory: newEmberClient,
 	}
 }
 
+func newEmberClient(host string, port int) (config.EmberConnection, error) {
+	return emberclient.NewEmberClient(host, port)
+}
+
 func (s DefaultEmberPollService) InitEmberConn() {
+	if s.ClientFactory == nil {
+		s.ClientFactory = newEmberClient
+	}
 	for host, hostData := range s.Cfg.Ember.InConfig {
-		var (
-			emberClientConfig config.EmberConfig
-			emberClient       *emberclient.EmberClient
-		)
-		emberClientConfig.Port = hostData.Port
-		emberClientConfig.EntryPath = hostData.EntryPath
-		emberClientConfig.MetricsPrefix = hostData.MetricsPrefix
-		emberClientConfig.GPIOs = hostData.GPIOs
-		emberClient, err := emberclient.NewEmberClient(host, emberClientConfig.Port)
+		emberClientConfig := config.EmberConfig{
+			Port:          hostData.Port,
+			EntryPath:     hostData.EntryPath,
+			MetricsPrefix: hostData.MetricsPrefix,
+			GPIOs:         hostData.GPIOs,
+		}
+		emberClient, err := s.ClientFactory(host, emberClientConfig.Port)
 		if err != nil {
 			logger.Error(fmt.Sprintf("could not create Ember connection to host %v on port %v", host, emberClientConfig.Port), err)
-		} else {
-			emberClientConfig.Conn = emberClient
-			emberClientConfig.Conn.Connect()
-			s.Cfg.RunTime.Lock()
-			s.Cfg.RunTime.EmberGpios[host] = emberClientConfig
-			s.Cfg.RunTime.Unlock()
+			continue
 		}
+		emberClientConfig.Conn = emberClient
+		if err := emberClientConfig.Conn.Connect(); err != nil {
+			logger.Error(fmt.Sprintf("could not connect to Ember host %v on port %v", host, emberClientConfig.Port), err)
+			continue
+		}
+		s.Cfg.RunTime.Lock()
+		s.Cfg.RunTime.EmberGpios[host] = emberClientConfig
+		s.Cfg.RunTime.Unlock()
 	}
 }
 
@@ -57,6 +71,9 @@ func (s DefaultEmberPollService) Reconnect() {
 	}
 	s.Cfg.RunTime.RUnlock()
 	for host, hostData := range emberGpios {
+		if hostData.Conn == nil {
+			continue
+		}
 		hostData.Conn.Disconnect()
 		if err := hostData.Conn.Connect(); err != nil {
 			logger.Errorf("Could not reconnect to host %v. %v", host, err)
@@ -68,12 +85,18 @@ func (s DefaultEmberPollService) CloseEmberConn() {
 	s.Cfg.RunTime.Lock()
 	defer s.Cfg.RunTime.Unlock()
 	for host, clientConfig := range s.Cfg.RunTime.EmberGpios {
-		clientConfig.Conn.Disconnect()
+		if clientConfig.Conn != nil {
+			clientConfig.Conn.Disconnect()
+		}
 		delete(s.Cfg.RunTime.EmberGpios, host)
 	}
 }
 
 func (s DefaultEmberPollService) Poll() {
+	s.PollContext(context.Background())
+}
+
+func (s DefaultEmberPollService) PollContext(ctx context.Context) {
 	if len(s.Cfg.Ember.InConfig) == 0 {
 		logger.Warn("No Ember poll host(s) given. Not polling Ember")
 		s.Cfg.SetRunEmberPoll(false)
@@ -82,9 +105,24 @@ func (s DefaultEmberPollService) Poll() {
 		s.InitEmberConn()
 		s.Cfg.SetRunEmberPoll(true)
 	}
+	ticker := time.NewTicker(intervalSeconds(s.Cfg.Ember.IntervalSec))
+	defer ticker.Stop()
 	for s.Cfg.ShouldRunEmberPoll() {
+		select {
+		case <-ctx.Done():
+			s.Cfg.SetRunEmberPoll(false)
+			s.CloseEmberConn()
+			return
+		default:
+		}
 		s.PollRun()
-		time.Sleep(time.Duration(s.Cfg.Ember.IntervalSec) * time.Second)
+		select {
+		case <-ctx.Done():
+			s.Cfg.SetRunEmberPoll(false)
+			s.CloseEmberConn()
+			return
+		case <-ticker.C:
+		}
 	}
 	s.CloseEmberConn()
 }
@@ -98,6 +136,10 @@ func (s DefaultEmberPollService) PollRun() {
 	}
 	s.Cfg.RunTime.RUnlock()
 	for host, clientConfig := range emberGpios {
+		if clientConfig.Conn == nil {
+			logger.Error(fmt.Sprintf("Could not get data from Ember provider. Host: %v, Port: %v", host, clientConfig.Port), fmt.Errorf("no Ember connection"))
+			continue
+		}
 		data, err := clientConfig.Conn.GetByType("node", clientConfig.EntryPath)
 		if err != nil {
 			s.Reconnect()

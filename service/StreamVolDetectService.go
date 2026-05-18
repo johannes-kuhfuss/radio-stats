@@ -16,23 +16,35 @@ import (
 
 type StreamVolDetector interface {
 	Listen()
+	ListenContext(context.Context)
 }
+
+type FfmpegRunner func(context.Context, string, ...string) ([]byte, error)
 
 type DefaultStreamVolDetectService struct {
-	Cfg *config.AppConfig
-}
-
-var ffmpegCombinedOutput = func(ctx context.Context, name string, args ...string) ([]byte, error) {
-	return exec.CommandContext(ctx, name, args...).CombinedOutput()
+	Cfg          *config.AppConfig
+	FfmpegRunner FfmpegRunner
 }
 
 func NewStreamVolDetectService(cfg *config.AppConfig) DefaultStreamVolDetectService {
 	return DefaultStreamVolDetectService{
-		Cfg: cfg,
+		Cfg:          cfg,
+		FfmpegRunner: runFfmpegCommand,
 	}
 }
 
+func runFfmpegCommand(ctx context.Context, name string, args ...string) ([]byte, error) {
+	return exec.CommandContext(ctx, name, args...).CombinedOutput()
+}
+
 func (s DefaultStreamVolDetectService) Listen() {
+	s.ListenContext(context.Background())
+}
+
+func (s DefaultStreamVolDetectService) ListenContext(ctx context.Context) {
+	if s.FfmpegRunner == nil {
+		s.FfmpegRunner = runFfmpegCommand
+	}
 	if len(s.Cfg.StreamVolDetect.Urls) == 0 {
 		logger.Warn("No volume detection URLs given. Not starting stream volume detection")
 		s.Cfg.SetRunListen(false)
@@ -43,11 +55,24 @@ func (s DefaultStreamVolDetectService) Listen() {
 		s.Cfg.SetRunListen(true)
 	}
 
+	ticker := time.NewTicker(intervalSeconds(s.Cfg.StreamVolDetect.IntervalSec))
+	defer ticker.Stop()
 	for s.Cfg.ShouldRunListen() {
+		select {
+		case <-ctx.Done():
+			s.Cfg.SetRunListen(false)
+			return
+		default:
+		}
 		for _, streamUrl := range s.Cfg.StreamVolDetect.Urls {
 			s.ListenRun(streamUrl)
 		}
-		time.Sleep(time.Duration(s.Cfg.StreamVolDetect.IntervalSec) * time.Second)
+		select {
+		case <-ctx.Done():
+			s.Cfg.SetRunListen(false)
+			return
+		case <-ticker.C:
+		}
 	}
 }
 
@@ -83,15 +108,17 @@ func (s DefaultStreamVolDetectService) updateVolMetrics(lines []string, streamUr
 }
 
 func (s DefaultStreamVolDetectService) runFfmpeg(streamUrl string) (lines []string) {
+	if s.FfmpegRunner == nil {
+		s.FfmpegRunner = runFfmpegCommand
+	}
 	ctx := context.Background()
 	timeout := time.Duration(s.Cfg.StreamVolDetect.Duration+5) * time.Second
 	ctx, cancel := context.WithTimeout(ctx, timeout)
-	out, err := ffmpegCombinedOutput(ctx, s.Cfg.StreamVolDetect.FfmpegExe, "-t", strconv.Itoa(s.Cfg.StreamVolDetect.Duration), "-i", streamUrl, "-af", "volumedetect", "-f", "null", "/dev/null")
+	defer cancel()
+	out, err := s.FfmpegRunner(ctx, s.Cfg.StreamVolDetect.FfmpegExe, "-t", strconv.Itoa(s.Cfg.StreamVolDetect.Duration), "-i", streamUrl, "-af", "volumedetect", "-f", "null", "/dev/null")
 	if err != nil {
-		cancel()
 		logger.Error(fmt.Sprintf("Could not execute ffmpeg on URL %v: ", streamUrl), err)
 		return nil
 	}
-	cancel()
 	return strings.Split(string(out), "\n")
 }

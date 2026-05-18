@@ -2,6 +2,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -16,38 +17,44 @@ import (
 
 type StreamScraper interface {
 	Scrape()
+	ScrapeContext(context.Context)
 }
 
 type DefaultStreamScrapeService struct {
-	Cfg *config.AppConfig
+	Cfg    *config.AppConfig
+	Client *http.Client
 }
 
-var (
-	httpStreamTr     http.Transport
-	httpStreamClient http.Client
-)
-
 func NewStreamScrapeService(cfg *config.AppConfig) DefaultStreamScrapeService {
-	InitStreamHttp()
 	return DefaultStreamScrapeService{
-		Cfg: cfg,
+		Cfg:    cfg,
+		Client: NewStreamHttpClient(),
+	}
+}
+
+func NewStreamHttpClient() *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			DisableKeepAlives:  false,
+			DisableCompression: false,
+			MaxIdleConns:       0,
+			IdleConnTimeout:    0,
+		},
+		Timeout: 5 * time.Second,
 	}
 }
 
 func InitStreamHttp() {
-	httpStreamTr = http.Transport{
-		DisableKeepAlives:  false,
-		DisableCompression: false,
-		MaxIdleConns:       0,
-		IdleConnTimeout:    0,
-	}
-	httpStreamClient = http.Client{
-		Transport: &httpStreamTr,
-		Timeout:   5 * time.Second,
-	}
 }
 
 func (s DefaultStreamScrapeService) Scrape() {
+	s.ScrapeContext(context.Background())
+}
+
+func (s DefaultStreamScrapeService) ScrapeContext(ctx context.Context) {
+	if s.Client == nil {
+		s.Client = NewStreamHttpClient()
+	}
 	if s.Cfg.StreamScrape.Url == "" {
 		logger.Warn("No scrape URL given. Not scraping stream metrics")
 		s.Cfg.SetRunScrape(false)
@@ -56,9 +63,22 @@ func (s DefaultStreamScrapeService) Scrape() {
 		s.Cfg.SetRunScrape(true)
 	}
 
+	ticker := time.NewTicker(intervalSeconds(s.Cfg.StreamScrape.IntervalSec))
+	defer ticker.Stop()
 	for s.Cfg.ShouldRunScrape() {
+		select {
+		case <-ctx.Done():
+			s.Cfg.SetRunScrape(false)
+			return
+		default:
+		}
 		s.ScrapeRun()
-		time.Sleep(time.Duration(s.Cfg.StreamScrape.IntervalSec) * time.Second)
+		select {
+		case <-ctx.Done():
+			s.Cfg.SetRunScrape(false)
+			return
+		case <-ticker.C:
+		}
 	}
 }
 
@@ -66,7 +86,7 @@ func (s DefaultStreamScrapeService) ScrapeRun() {
 	var streamData domain.IceCastStats
 	s.Cfg.IncStreamScrapeCount()
 	s.Cfg.Metrics.StreamScrapeCount.Inc()
-	body, err := GetDataFromStreamUrl(s.Cfg.StreamScrape.Url)
+	body, err := s.GetDataFromStreamUrl(s.Cfg.StreamScrape.Url)
 	if err == nil {
 		sanitizedBody := sanitize(body)
 		streamData, err = unMarshall(sanitizedBody)
@@ -80,12 +100,24 @@ func (s DefaultStreamScrapeService) ScrapeRun() {
 }
 
 func GetDataFromStreamUrl(Url string) ([]byte, error) {
-	resp, err := httpStreamClient.Get(Url)
+	return DefaultStreamScrapeService{Client: NewStreamHttpClient()}.GetDataFromStreamUrl(Url)
+}
+
+func (s DefaultStreamScrapeService) GetDataFromStreamUrl(Url string) ([]byte, error) {
+	if s.Client == nil {
+		s.Client = NewStreamHttpClient()
+	}
+	resp, err := s.Client.Get(Url)
 	if err != nil {
 		logger.Error("Error while scraping stream metrics", err)
 		return nil, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		err := fmt.Errorf("stream scrape host returned status %v", resp.Status)
+		logger.Error("Error while scraping stream metrics", err)
+		return nil, err
+	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

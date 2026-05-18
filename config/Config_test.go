@@ -1,63 +1,39 @@
 package config
 
 import (
-	"bufio"
-	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	testEnvFile string = ".testenv"
-	testConfig  AppConfig
-)
-
-func checkErr(err error) {
-	if err != nil {
-		panic(fmt.Sprintf("could not execute test preparation. Error: %s", err))
-	}
-}
-
-func writeTestEnv(fileName string) {
-	f, err := os.Create(fileName)
-	checkErr(err)
-	defer f.Close()
-	w := bufio.NewWriter(f)
-	_, err = w.WriteString("GIN_MODE=\"debug\"\n")
-	checkErr(err)
-	_, err = w.WriteString("SERVER_HOST=\"127.0.0.1\"\n")
-	checkErr(err)
-	_, err = w.WriteString("SERVER_PORT=\"9999\"\n")
-	checkErr(err)
-	w.Flush()
-}
-
-func deleteEnvFile(fileName string) {
-	err := os.Remove(fileName)
-	checkErr(err)
-}
-
-func unsetEnvVars() {
-	os.Unsetenv("GIN_MODE")
-	os.Unsetenv("SERVER_HOST")
-	os.Unsetenv("SERVER_PORT")
+func writeTestEnv(t *testing.T) string {
+	t.Helper()
+	fileName := filepath.Join(t.TempDir(), ".testenv")
+	err := os.WriteFile(fileName, []byte("GIN_MODE=\"debug\"\nSERVER_HOST=\"127.0.0.1\"\nSERVER_PORT=\"9999\"\n"), 0644)
+	assert.Nil(t, err)
+	return fileName
 }
 
 func TestLoadConfigNoEnvFileReturnsError(t *testing.T) {
 	err := loadConfig("file_does_not_exist.txt")
 	assert.NotNil(t, err)
-	fmt.Printf("error: %v", err)
 
-	assert.EqualValues(t, "open file_does_not_exist.txt: The system cannot find the file specified.", err.Error())
+	assert.Contains(t, err.Error(), "file_does_not_exist.txt")
 }
 
 func TestLoadConfigWithEnvFileReturnsNoError(t *testing.T) {
-	writeTestEnv(testEnvFile)
-	defer deleteEnvFile(testEnvFile)
-	err := loadConfig(testEnvFile)
-	defer unsetEnvVars()
+	os.Unsetenv("GIN_MODE")
+	os.Unsetenv("SERVER_HOST")
+	os.Unsetenv("SERVER_PORT")
+	t.Cleanup(func() {
+		os.Unsetenv("GIN_MODE")
+		os.Unsetenv("SERVER_HOST")
+		os.Unsetenv("SERVER_PORT")
+	})
+
+	err := loadConfig(writeTestEnv(t))
 
 	assert.Nil(t, err)
 	assert.EqualValues(t, "127.0.0.1", os.Getenv("SERVER_HOST"))
@@ -65,9 +41,17 @@ func TestLoadConfigWithEnvFileReturnsNoError(t *testing.T) {
 }
 
 func TestInitConfigWithEnvFileSetsValues(t *testing.T) {
-	writeTestEnv(testEnvFile)
-	defer deleteEnvFile(testEnvFile)
-	err := InitConfig(testEnvFile, &testConfig)
+	os.Unsetenv("GIN_MODE")
+	os.Unsetenv("SERVER_HOST")
+	os.Unsetenv("SERVER_PORT")
+	t.Cleanup(func() {
+		os.Unsetenv("GIN_MODE")
+		os.Unsetenv("SERVER_HOST")
+		os.Unsetenv("SERVER_PORT")
+	})
+	var testConfig AppConfig
+
+	err := InitConfig(writeTestEnv(t), &testConfig)
 
 	assert.Nil(t, err)
 	assert.EqualValues(t, 10, testConfig.Server.GracefulShutdownTime)

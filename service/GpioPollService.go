@@ -3,6 +3,7 @@ package service
 
 import (
 	"bytes"
+	"context"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -16,97 +17,124 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
+var ErrGpioUnauthenticated = errors.New("gpio unauthenticated")
+
 type GpioPoller interface {
 	Poll()
+	PollContext(context.Context)
 }
 
 type DefaultGpioPollService struct {
-	Cfg *config.AppConfig
+	Cfg      *config.AppConfig
+	Client   *http.Client
+	Cookie   *http.Cookie
+	LoggedIn bool
 }
 
-var (
-	httpGpioPollTr     http.Transport
-	httpGpioPollClient http.Client
-	cookie             *http.Cookie
-	loggedIn           bool = false
-)
-
 func NewGpioPollService(cfg *config.AppConfig) DefaultGpioPollService {
-	InitGpioPollHttp()
 	return DefaultGpioPollService{
-		Cfg: cfg,
+		Cfg:    cfg,
+		Client: NewGpioPollHttpClient(),
+	}
+}
+
+func NewGpioPollHttpClient() *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			DisableKeepAlives:  false,
+			DisableCompression: false,
+			MaxIdleConns:       0,
+			IdleConnTimeout:    0,
+		},
+		Timeout: 5 * time.Second,
 	}
 }
 
 func InitGpioPollHttp() {
-	httpGpioPollTr = http.Transport{
-		DisableKeepAlives:  false,
-		DisableCompression: false,
-		MaxIdleConns:       0,
-		IdleConnTimeout:    0,
-	}
-	httpGpioPollClient = http.Client{
-		Transport: &httpGpioPollTr,
-		Timeout:   5 * time.Second,
-	}
 }
 
 func LoginToGpio(cfg *config.AppConfig) (success bool) {
-	loginString := fmt.Sprintf("u=%s&p=%s", cfg.Gpio.User, cfg.Gpio.Password)
+	service := NewGpioPollService(cfg)
+	return service.Login()
+}
+
+func (s *DefaultGpioPollService) Login() (success bool) {
+	if s.Client == nil {
+		s.Client = NewGpioPollHttpClient()
+	}
+	loginString := fmt.Sprintf("u=%s&p=%s", s.Cfg.Gpio.User, s.Cfg.Gpio.Password)
 	bodyReader := bytes.NewBuffer([]byte(loginString))
 	loginUrl := url.URL{
 		Scheme: "http",
-		Host:   cfg.Gpio.Host,
+		Host:   s.Cfg.Gpio.Host,
 		Path:   "/login.html",
 	}
 	req, _ := http.NewRequest("POST", loginUrl.String(), bodyReader)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	resp, err := httpGpioPollClient.Do(req)
+	resp, err := s.Client.Do(req)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Could not authenticate to host %v", cfg.Gpio.Host), err)
+		logger.Error(fmt.Sprintf("Could not authenticate to host %v", s.Cfg.Gpio.Host), err)
 		return false
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 		err := fmt.Errorf("host returned status %v", resp.Status)
-		logger.Error(fmt.Sprintf("Could not authenticate to host %v", cfg.Gpio.Host), err)
+		logger.Error(fmt.Sprintf("Could not authenticate to host %v", s.Cfg.Gpio.Host), err)
 		return false
 	}
 	if len(resp.Cookies()) > 0 {
-		logger.Info(fmt.Sprintf("Successfully authenticated to host %v", cfg.Gpio.Host))
-		cookie = resp.Cookies()[0]
+		logger.Info(fmt.Sprintf("Successfully authenticated to host %v", s.Cfg.Gpio.Host))
+		s.Cookie = resp.Cookies()[0]
 		return true
 	}
-	logger.Error(fmt.Sprintf("Host %v did not return cookie", cfg.Gpio.Host), err)
+	logger.Error(fmt.Sprintf("Host %v did not return cookie", s.Cfg.Gpio.Host), nil)
 	return false
 }
 
 func (s DefaultGpioPollService) Poll() {
+	s.PollContext(context.Background())
+}
+
+func (s DefaultGpioPollService) PollContext(ctx context.Context) {
+	if s.Client == nil {
+		s.Client = NewGpioPollHttpClient()
+	}
 	if s.Cfg.Gpio.Host == "" {
 		logger.Warn("No GPIO poll host given. Not polling GPIOs")
 		s.Cfg.SetRunGpioPoll(false)
 	} else {
-		loggedIn = LoginToGpio(s.Cfg)
-		s.Cfg.SetGpioConnected(loggedIn)
+		s.LoggedIn = s.Login()
+		s.Cfg.SetGpioConnected(s.LoggedIn)
 		logger.Info(fmt.Sprintf("Starting to poll GPIOs from host %v", s.Cfg.Gpio.Host))
 		s.Cfg.SetRunGpioPoll(true)
 	}
 
+	ticker := time.NewTicker(intervalSeconds(s.Cfg.Gpio.IntervalSec))
+	defer ticker.Stop()
 	for s.Cfg.ShouldRunGpioPoll() {
-		if loggedIn {
+		select {
+		case <-ctx.Done():
+			s.Cfg.SetRunGpioPoll(false)
+			return
+		default:
+		}
+		if s.LoggedIn {
 			err := s.PollRun()
-			if err != nil {
-				if err.Error() == "expected element type <devStat> but have <html>" {
-					logger.Warn("Unauthenticated. Trying to re-authenticate...")
-					loggedIn = false
-					s.Cfg.SetGpioConnected(loggedIn)
-				}
+			if errors.Is(err, ErrGpioUnauthenticated) {
+				logger.Warn("Unauthenticated. Trying to re-authenticate...")
+				s.LoggedIn = false
+				s.Cfg.SetGpioConnected(s.LoggedIn)
 			}
 		} else {
-			loggedIn = LoginToGpio(s.Cfg)
-			s.Cfg.SetGpioConnected(loggedIn)
+			s.LoggedIn = s.Login()
+			s.Cfg.SetGpioConnected(s.LoggedIn)
 		}
-		time.Sleep(time.Duration(s.Cfg.Gpio.IntervalSec) * time.Second)
+		select {
+		case <-ctx.Done():
+			s.Cfg.SetRunGpioPoll(false)
+			return
+		case <-ticker.C:
+		}
 	}
 }
 
@@ -116,7 +144,7 @@ func (s DefaultGpioPollService) PollRun() error {
 		Host:   s.Cfg.Gpio.Host,
 		Path:   "/devStat.xml",
 	}
-	gpioState, err := GetXmlFromPollUrl(pollUrl.String())
+	gpioState, err := s.GetXmlFromPollUrl(pollUrl.String())
 	if err == nil {
 		mapState(gpioState, s.Cfg)
 		updateGpioMetrics(s.Cfg)
@@ -126,18 +154,36 @@ func (s DefaultGpioPollService) PollRun() error {
 }
 
 func GetXmlFromPollUrl(pollUrl string) (*domain.DevStat, error) {
+	return DefaultGpioPollService{Client: NewGpioPollHttpClient()}.GetXmlFromPollUrl(pollUrl)
+}
+
+func (s DefaultGpioPollService) GetXmlFromPollUrl(pollUrl string) (*domain.DevStat, error) {
 	var gpioState domain.DevStat
+	if s.Client == nil {
+		s.Client = NewGpioPollHttpClient()
+	}
 
 	req, _ := http.NewRequest("GET", pollUrl, nil)
-	req.AddCookie(cookie)
-	resp, err := httpGpioPollClient.Do(req)
+	if s.Cookie != nil {
+		req.AddCookie(s.Cookie)
+	}
+	resp, err := s.Client.Do(req)
 	if err != nil {
 		logger.Error("Error while polling GPIO data", err)
 		return nil, err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode == 404 {
-		err := errors.New("URl not found")
+	if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+		logger.Error("Error while polling GPIO data", ErrGpioUnauthenticated)
+		return nil, ErrGpioUnauthenticated
+	}
+	if resp.StatusCode == http.StatusNotFound {
+		err := errors.New("URL not found")
+		logger.Error("Error while polling GPIO data", err)
+		return nil, err
+	}
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		err := fmt.Errorf("gpio poll host returned status %v", resp.Status)
 		logger.Error("Error while polling GPIO data", err)
 		return nil, err
 	}
@@ -145,6 +191,10 @@ func GetXmlFromPollUrl(pollUrl string) (*domain.DevStat, error) {
 	decoder := xml.NewDecoder(resp.Body)
 	decoder.CharsetReader = charset.NewReaderLabel
 	if err := decoder.Decode(&gpioState); err != nil {
+		if syntaxErr := new(xml.SyntaxError); errors.As(err, &syntaxErr) && syntaxErr.Msg == "expected element type <devStat> but have <html>" {
+			logger.Error("Error while converting GPIO data to XML", ErrGpioUnauthenticated)
+			return nil, ErrGpioUnauthenticated
+		}
 		logger.Error("Error while converting GPIO data to XML", err)
 		return nil, err
 	}

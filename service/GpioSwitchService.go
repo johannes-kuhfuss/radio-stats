@@ -18,36 +18,38 @@ type GpioSwitcher interface {
 }
 
 type DefaultGpioSwitchService struct {
-	Cfg *config.AppConfig
+	Cfg    *config.AppConfig
+	Client *http.Client
+	Delay  time.Duration
 }
 
-var (
-	httpGpioSwitchTr     http.Transport
-	httpGpioSwitchClient http.Client
-	gpioSwitchDelay      = 250 * time.Millisecond
-)
-
 func NewGpioSwitchService(cfg *config.AppConfig) DefaultGpioSwitchService {
-	InitGpioSwitchHttp()
 	return DefaultGpioSwitchService{
-		Cfg: cfg,
+		Cfg:    cfg,
+		Client: NewGpioSwitchHttpClient(),
+		Delay:  250 * time.Millisecond,
+	}
+}
+
+func NewGpioSwitchHttpClient() *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			DisableKeepAlives:  false,
+			DisableCompression: false,
+			MaxIdleConns:       0,
+			IdleConnTimeout:    0,
+		},
+		Timeout: 5 * time.Second,
 	}
 }
 
 func InitGpioSwitchHttp() {
-	httpGpioSwitchTr = http.Transport{
-		DisableKeepAlives:  false,
-		DisableCompression: false,
-		MaxIdleConns:       0,
-		IdleConnTimeout:    0,
-	}
-	httpGpioSwitchClient = http.Client{
-		Transport: &httpGpioSwitchTr,
-		Timeout:   5 * time.Second,
-	}
 }
 
 func (s DefaultGpioSwitchService) Switch(xPoint string) (err api_error.ApiErr) {
+	if s.Client == nil {
+		s.Client = NewGpioSwitchHttpClient()
+	}
 	if s.Cfg.Gpio.Host == "" {
 		return api_error.NewInternalServerError("No GPIO host configured", nil)
 	}
@@ -69,7 +71,6 @@ func (s DefaultGpioSwitchService) Switch(xPoint string) (err api_error.ApiErr) {
 
 	logger.Info(fmt.Sprintf("Switching xpoint %v, pin %v", xPoint, xPointNum))
 
-	// Toggle twice
 	req, reqErr := http.NewRequest("GET", urlString, nil)
 	if reqErr != nil {
 		msg := "Error while creating switch request"
@@ -77,35 +78,33 @@ func (s DefaultGpioSwitchService) Switch(xPoint string) (err api_error.ApiErr) {
 		return api_error.NewInternalServerError(msg, reqErr)
 	}
 
-	resp, reqErr := httpGpioSwitchClient.Do(req)
+	if err := s.doSwitchRequest(req, "1/2"); err != nil {
+		return err
+	}
+
+	time.Sleep(s.Delay)
+
+	if err := s.doSwitchRequest(req, "2/2"); err != nil {
+		return err
+	}
+
+	time.Sleep(s.Delay)
+
+	return nil
+}
+
+func (s DefaultGpioSwitchService) doSwitchRequest(req *http.Request, attempt string) api_error.ApiErr {
+	resp, reqErr := s.Client.Do(req)
 	if reqErr != nil {
-		msg := "Error while switching xpoint (1/2)"
+		msg := fmt.Sprintf("Error while switching xpoint (%s)", attempt)
 		logger.Error(msg, reqErr)
 		return api_error.NewInternalServerError(msg, reqErr)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		msg := fmt.Sprintf("Error while switching xpoint (1/2), device returned status %v", resp.Status)
+		msg := fmt.Sprintf("Error while switching xpoint (%s), device returned status %v", attempt, resp.Status)
 		logger.Error(msg, nil)
 		return api_error.NewInternalServerError(msg, nil)
 	}
-
-	time.Sleep(gpioSwitchDelay)
-
-	resp, reqErr = httpGpioSwitchClient.Do(req)
-	if reqErr != nil {
-		msg := "Error while switching xpoint (2/2)"
-		logger.Error(msg, reqErr)
-		return api_error.NewInternalServerError(msg, reqErr)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		msg := fmt.Sprintf("Error while switching xpoint (2/2), device returned status %v", resp.Status)
-		logger.Error(msg, nil)
-		return api_error.NewInternalServerError(msg, nil)
-	}
-
-	time.Sleep(gpioSwitchDelay)
-
 	return nil
 }
