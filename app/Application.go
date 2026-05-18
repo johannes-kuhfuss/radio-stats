@@ -145,8 +145,8 @@ func mapUrls() {
 	cfg.RunTime.Router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	authorized := cfg.RunTime.Router.Group("/", basicAuth(cfg.Server.AdminUserName, cfg.Server.AdminPasswordHash))
 	authorized.GET("/switch", statsUiHandler.SwitchPage)
-	cfg.RunTime.Router.POST("/switch", gpioSwitchHandler.SwitchXpoint)
-	cfg.RunTime.Router.GET("/logs", statsUiHandler.LogsPage)
+	authorized.POST("/switch", gpioSwitchHandler.SwitchXpoint)
+	authorized.GET("/logs", statsUiHandler.LogsPage)
 }
 
 // RegisterForOsSignals listens for OS signals terminating the program and sends an internal signal to start cleanup
@@ -158,7 +158,9 @@ func RegisterForOsSignals() {
 // startServer starts the preconfigured web server
 func startServer() {
 	logger.Info(fmt.Sprintf("Listening on %v", cfg.RunTime.ListenAddr))
+	cfg.RunTime.Lock()
 	cfg.RunTime.StartDate = date.GetNowUtc()
+	cfg.RunTime.Unlock()
 	if cfg.Server.UseTls {
 		if err := server.ListenAndServeTLS(cfg.Server.CertFile, cfg.Server.KeyFile); err != nil && err != http.ErrServerClosed {
 			logger.Error("Error while starting https server", err)
@@ -196,10 +198,10 @@ func startStreamVolumeDetect() {
 func cleanUp() {
 	logger.Info("Cleaning up")
 	shutdownTime := time.Duration(cfg.Server.GracefulShutdownTime) * time.Second
-	cfg.RunTime.RunListen = false
-	cfg.RunTime.RunScrape = false
-	cfg.RunTime.RunGpioPoll = false
-	cfg.RunTime.RunEmberPoll = false
+	cfg.SetRunListen(false)
+	cfg.SetRunScrape(false)
+	cfg.SetRunGpioPoll(false)
+	cfg.SetRunEmberPoll(false)
 	emberPollService.CloseEmberConn()
 	ctx, cancel = context.WithTimeout(context.Background(), shutdownTime)
 	defer cancel()

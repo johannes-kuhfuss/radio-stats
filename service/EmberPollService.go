@@ -42,13 +42,21 @@ func (s DefaultEmberPollService) InitEmberConn() {
 		} else {
 			emberClientConfig.Conn = emberClient
 			emberClientConfig.Conn.Connect()
+			s.Cfg.RunTime.Lock()
 			s.Cfg.RunTime.EmberGpios[host] = emberClientConfig
+			s.Cfg.RunTime.Unlock()
 		}
 	}
 }
 
 func (s DefaultEmberPollService) Reconnect() {
+	s.Cfg.RunTime.RLock()
+	emberGpios := make(map[string]config.EmberConfig, len(s.Cfg.RunTime.EmberGpios))
 	for host, hostData := range s.Cfg.RunTime.EmberGpios {
+		emberGpios[host] = hostData
+	}
+	s.Cfg.RunTime.RUnlock()
+	for host, hostData := range emberGpios {
 		hostData.Conn.Disconnect()
 		if err := hostData.Conn.Connect(); err != nil {
 			logger.Errorf("Could not reconnect to host %v. %v", host, err)
@@ -57,6 +65,8 @@ func (s DefaultEmberPollService) Reconnect() {
 }
 
 func (s DefaultEmberPollService) CloseEmberConn() {
+	s.Cfg.RunTime.Lock()
+	defer s.Cfg.RunTime.Unlock()
 	for host, clientConfig := range s.Cfg.RunTime.EmberGpios {
 		clientConfig.Conn.Disconnect()
 		delete(s.Cfg.RunTime.EmberGpios, host)
@@ -66,13 +76,13 @@ func (s DefaultEmberPollService) CloseEmberConn() {
 func (s DefaultEmberPollService) Poll() {
 	if len(s.Cfg.Ember.InConfig) == 0 {
 		logger.Warn("No Ember poll host(s) given. Not polling Ember")
-		s.Cfg.RunTime.RunEmberPoll = false
+		s.Cfg.SetRunEmberPoll(false)
 	} else {
 		logger.Info("Starting to poll Ember data")
 		s.InitEmberConn()
-		s.Cfg.RunTime.RunEmberPoll = true
+		s.Cfg.SetRunEmberPoll(true)
 	}
-	for s.Cfg.RunTime.RunEmberPoll {
+	for s.Cfg.ShouldRunEmberPoll() {
 		s.PollRun()
 		time.Sleep(time.Duration(s.Cfg.Ember.IntervalSec) * time.Second)
 	}
@@ -81,7 +91,13 @@ func (s DefaultEmberPollService) Poll() {
 
 func (s DefaultEmberPollService) PollRun() {
 	var emberData map[string]map[string]any
+	s.Cfg.RunTime.RLock()
+	emberGpios := make(map[string]config.EmberConfig, len(s.Cfg.RunTime.EmberGpios))
 	for host, clientConfig := range s.Cfg.RunTime.EmberGpios {
+		emberGpios[host] = clientConfig
+	}
+	s.Cfg.RunTime.RUnlock()
+	for host, clientConfig := range emberGpios {
 		data, err := clientConfig.Conn.GetByType("node", clientConfig.EntryPath)
 		if err != nil {
 			s.Reconnect()
@@ -100,8 +116,17 @@ func (s DefaultEmberPollService) updateMetrics(clientConfig config.EmberConfig, 
 	for e, d := range emberData {
 		if slices.Contains(clientConfig.GPIOs, e) {
 			if d["description"] != nil && d["value"] != nil {
-				metricName := clientConfig.MetricsPrefix + d["description"].(string)
-				metricsValue := d["value"].(bool)
+				description, ok := d["description"].(string)
+				if !ok {
+					logger.Warn(fmt.Sprintf("Skipping Ember GPIO %v with non-string description", e))
+					continue
+				}
+				metricsValue, ok := d["value"].(bool)
+				if !ok {
+					logger.Warn(fmt.Sprintf("Skipping Ember GPIO %v with non-bool value", e))
+					continue
+				}
+				metricName := clientConfig.MetricsPrefix + description
 				s.Cfg.Metrics.GpioStateGauge.WithLabelValues(metricName).Set(float64(boolToInt(metricsValue)))
 			}
 		}

@@ -31,17 +31,17 @@ func NewStreamVolDetectService(cfg *config.AppConfig) DefaultStreamVolDetectServ
 func (s DefaultStreamVolDetectService) Listen() {
 	if len(s.Cfg.StreamVolDetect.Urls) == 0 {
 		logger.Warn("No volume detection URLs given. Not starting stream volume detection")
-		s.Cfg.RunTime.RunListen = false
+		s.Cfg.SetRunListen(false)
 	} else {
 		for _, v := range s.Cfg.StreamVolDetect.Urls {
 			logger.Info(fmt.Sprintf("Starting to detect stream volume on %v", v))
 		}
-		s.Cfg.RunTime.RunListen = true
+		s.Cfg.SetRunListen(true)
 	}
 
-	for s.Cfg.RunTime.RunListen {
+	for s.Cfg.ShouldRunListen() {
 		for _, streamUrl := range s.Cfg.StreamVolDetect.Urls {
-			go s.ListenRun(streamUrl)
+			s.ListenRun(streamUrl)
 		}
 		time.Sleep(time.Duration(s.Cfg.StreamVolDetect.IntervalSec) * time.Second)
 	}
@@ -56,7 +56,7 @@ func (s DefaultStreamVolDetectService) ListenRun(streamUrl string) {
 }
 
 func (s DefaultStreamVolDetectService) increaseDetectCount() {
-	s.Cfg.RunTime.StreamVolDetectCount++
+	s.Cfg.IncStreamVolDetectCount()
 	s.Cfg.Metrics.StreamVolDetectCount.Inc()
 }
 

@@ -65,43 +65,46 @@ func LoginToGpio(cfg *config.AppConfig) (success bool) {
 	if err != nil {
 		logger.Error(fmt.Sprintf("Could not authenticate to host %v", cfg.Gpio.Host), err)
 		return false
-	} else {
-		if len(resp.Cookies()) > 0 {
-			logger.Info(fmt.Sprintf("Successfully authenticated to host %v", cfg.Gpio.Host))
-			cookie = resp.Cookies()[0]
-			return true
-		} else {
-			logger.Error(fmt.Sprintf("Host %v did not return cookie", cfg.Gpio.Host), err)
-			return false
-		}
-
 	}
+	defer resp.Body.Close()
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		err := fmt.Errorf("host returned status %v", resp.Status)
+		logger.Error(fmt.Sprintf("Could not authenticate to host %v", cfg.Gpio.Host), err)
+		return false
+	}
+	if len(resp.Cookies()) > 0 {
+		logger.Info(fmt.Sprintf("Successfully authenticated to host %v", cfg.Gpio.Host))
+		cookie = resp.Cookies()[0]
+		return true
+	}
+	logger.Error(fmt.Sprintf("Host %v did not return cookie", cfg.Gpio.Host), err)
+	return false
 }
 
 func (s DefaultGpioPollService) Poll() {
 	if s.Cfg.Gpio.Host == "" {
 		logger.Warn("No GPIO poll host given. Not polling GPIOs")
-		s.Cfg.RunTime.RunGpioPoll = false
+		s.Cfg.SetRunGpioPoll(false)
 	} else {
 		loggedIn = LoginToGpio(s.Cfg)
-		s.Cfg.RunTime.GpioConnected = loggedIn
+		s.Cfg.SetGpioConnected(loggedIn)
 		logger.Info(fmt.Sprintf("Starting to poll GPIOs from host %v", s.Cfg.Gpio.Host))
-		s.Cfg.RunTime.RunGpioPoll = true
+		s.Cfg.SetRunGpioPoll(true)
 	}
 
-	for s.Cfg.RunTime.RunGpioPoll {
+	for s.Cfg.ShouldRunGpioPoll() {
 		if loggedIn {
 			err := s.PollRun()
 			if err != nil {
 				if err.Error() == "expected element type <devStat> but have <html>" {
 					logger.Warn("Unauthenticated. Trying to re-authenticate...")
 					loggedIn = false
-					s.Cfg.RunTime.GpioConnected = loggedIn
+					s.Cfg.SetGpioConnected(loggedIn)
 				}
 			}
 		} else {
 			loggedIn = LoginToGpio(s.Cfg)
-			s.Cfg.RunTime.GpioConnected = loggedIn
+			s.Cfg.SetGpioConnected(loggedIn)
 		}
 		time.Sleep(time.Duration(s.Cfg.Gpio.IntervalSec) * time.Second)
 	}
@@ -132,12 +135,12 @@ func GetXmlFromPollUrl(pollUrl string) (*domain.DevStat, error) {
 		logger.Error("Error while polling GPIO data", err)
 		return nil, err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode == 404 {
 		err := errors.New("URl not found")
 		logger.Error("Error while polling GPIO data", err)
 		return nil, err
 	}
-	defer resp.Body.Close()
 
 	decoder := xml.NewDecoder(resp.Body)
 	decoder.CharsetReader = charset.NewReaderLabel
@@ -149,6 +152,8 @@ func GetXmlFromPollUrl(pollUrl string) (*domain.DevStat, error) {
 }
 
 func mapState(gpioState *domain.DevStat, cfg *config.AppConfig) {
+	cfg.RunTime.Lock()
+	defer cfg.RunTime.Unlock()
 	for i1, v1 := range gpioState.In {
 		for i2, v2 := range cfg.RunTime.Gpios {
 			if (i1 + 1) == v2.Id {
@@ -167,6 +172,8 @@ func stringToBool(s string) bool {
 }
 
 func updateGpioMetrics(cfg *config.AppConfig) {
+	cfg.RunTime.RLock()
+	defer cfg.RunTime.RUnlock()
 	for _, v := range cfg.RunTime.Gpios {
 		cfg.Metrics.GpioStateGauge.WithLabelValues(v.Name).Set(float64(boolToInt(v.State)))
 	}

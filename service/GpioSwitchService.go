@@ -69,26 +69,42 @@ func (s DefaultGpioSwitchService) Switch(xPoint string) (err api_error.ApiErr) {
 	logger.Info(fmt.Sprintf("Switching xpoint %v, pin %v", xPoint, xPointNum))
 
 	// Toggle twice
-	req, _ := http.NewRequest("GET", urlString, nil)
-
-	if _, reqErr := httpGpioSwitchClient.Do(req); reqErr != nil {
-		msg := "Error while switching xpoint (1/2)"
+	req, reqErr := http.NewRequest("GET", urlString, nil)
+	if reqErr != nil {
+		msg := "Error while creating switch request"
 		logger.Error(msg, reqErr)
 		return api_error.NewInternalServerError(msg, reqErr)
 	}
 
+	resp, reqErr := httpGpioSwitchClient.Do(req)
+	if reqErr != nil {
+		msg := "Error while switching xpoint (1/2)"
+		logger.Error(msg, reqErr)
+		return api_error.NewInternalServerError(msg, reqErr)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		msg := fmt.Sprintf("Error while switching xpoint (1/2), device returned status %v", resp.Status)
+		logger.Error(msg, nil)
+		return api_error.NewInternalServerError(msg, nil)
+	}
+
 	time.Sleep(250 * time.Millisecond)
 
-	resp, reqErr := httpGpioSwitchClient.Do(req)
+	resp, reqErr = httpGpioSwitchClient.Do(req)
 	if reqErr != nil {
 		msg := "Error while switching xpoint (2/2)"
 		logger.Error(msg, reqErr)
 		return api_error.NewInternalServerError(msg, reqErr)
 	}
+	defer resp.Body.Close()
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		msg := fmt.Sprintf("Error while switching xpoint (2/2), device returned status %v", resp.Status)
+		logger.Error(msg, nil)
+		return api_error.NewInternalServerError(msg, nil)
+	}
 
 	time.Sleep(250 * time.Millisecond)
-
-	defer resp.Body.Close()
 
 	return nil
 }

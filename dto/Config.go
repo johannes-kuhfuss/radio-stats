@@ -79,6 +79,7 @@ func volumeString(volumes map[string]float64) string {
 
 // GetConfig converts the configuration to its display format
 func GetConfig(cfg *config.AppConfig) (resp ConfigResp) {
+	cfg.RunTime.RLock()
 	resp = ConfigResp{
 		ServerHost:                    cfg.Server.Host,
 		ServerPort:                    cfg.Server.Port,
@@ -102,9 +103,6 @@ func GetConfig(cfg *config.AppConfig) (resp ConfigResp) {
 	if cfg.Server.Host == "" {
 		resp.ServerHost = "localhost"
 	}
-	cfg.RunTime.StreamVolumes.Lock()
-	resp.StreamVolumes = volumeString(cfg.RunTime.StreamVolumes.Vols)
-	cfg.RunTime.StreamVolumes.Unlock()
 	for _, v := range cfg.RunTime.Gpios {
 		var pinData struct {
 			Id     string
@@ -121,6 +119,10 @@ func GetConfig(cfg *config.AppConfig) (resp ConfigResp) {
 			resp.KsPins = append(resp.KsPins, pinData)
 		}
 	}
+	cfg.RunTime.RUnlock()
+	cfg.RunTime.StreamVolumes.Lock()
+	resp.StreamVolumes = volumeString(cfg.RunTime.StreamVolumes.Vols)
+	cfg.RunTime.StreamVolumes.Unlock()
 	for s := range cfg.Gpio.OutConfig {
 		resp.GpioOuts = append(resp.GpioOuts, s)
 		sort.Strings(resp.GpioOuts)

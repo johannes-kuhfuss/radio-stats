@@ -50,13 +50,13 @@ func InitStreamHttp() {
 func (s DefaultStreamScrapeService) Scrape() {
 	if s.Cfg.StreamScrape.Url == "" {
 		logger.Warn("No scrape URL given. Not scraping stream metrics")
-		s.Cfg.RunTime.RunScrape = false
+		s.Cfg.SetRunScrape(false)
 	} else {
 		logger.Info(fmt.Sprintf("Starting to scrape stream metrics from %v", s.Cfg.StreamScrape.Url))
-		s.Cfg.RunTime.RunScrape = true
+		s.Cfg.SetRunScrape(true)
 	}
 
-	for s.Cfg.RunTime.RunScrape {
+	for s.Cfg.ShouldRunScrape() {
 		s.ScrapeRun()
 		time.Sleep(time.Duration(s.Cfg.StreamScrape.IntervalSec) * time.Second)
 	}
@@ -64,7 +64,7 @@ func (s DefaultStreamScrapeService) Scrape() {
 
 func (s DefaultStreamScrapeService) ScrapeRun() {
 	var streamData domain.IceCastStats
-	s.Cfg.RunTime.StreamScrapeCount++
+	s.Cfg.IncStreamScrapeCount()
 	s.Cfg.Metrics.StreamScrapeCount.Inc()
 	body, err := GetDataFromStreamUrl(s.Cfg.StreamScrape.Url)
 	if err == nil {

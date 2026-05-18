@@ -138,6 +138,7 @@ type AppConfig struct {
 		StreamVolume         prometheus.GaugeVec
 	}
 	RunTime struct {
+		sync.RWMutex
 		Router               *gin.Engine
 		ListenAddr           string
 		StartDate            time.Time
@@ -200,4 +201,70 @@ func SetupGpios(config *AppConfig) {
 	sort.SliceStable(config.RunTime.Gpios, func(i, j int) bool {
 		return config.RunTime.Gpios[i].Id < config.RunTime.Gpios[j].Id
 	})
+}
+
+func (config *AppConfig) SetRunScrape(run bool) {
+	config.RunTime.Lock()
+	defer config.RunTime.Unlock()
+	config.RunTime.RunScrape = run
+}
+
+func (config *AppConfig) ShouldRunScrape() bool {
+	config.RunTime.RLock()
+	defer config.RunTime.RUnlock()
+	return config.RunTime.RunScrape
+}
+
+func (config *AppConfig) SetRunListen(run bool) {
+	config.RunTime.Lock()
+	defer config.RunTime.Unlock()
+	config.RunTime.RunListen = run
+}
+
+func (config *AppConfig) ShouldRunListen() bool {
+	config.RunTime.RLock()
+	defer config.RunTime.RUnlock()
+	return config.RunTime.RunListen
+}
+
+func (config *AppConfig) SetRunGpioPoll(run bool) {
+	config.RunTime.Lock()
+	defer config.RunTime.Unlock()
+	config.RunTime.RunGpioPoll = run
+}
+
+func (config *AppConfig) ShouldRunGpioPoll() bool {
+	config.RunTime.RLock()
+	defer config.RunTime.RUnlock()
+	return config.RunTime.RunGpioPoll
+}
+
+func (config *AppConfig) SetRunEmberPoll(run bool) {
+	config.RunTime.Lock()
+	defer config.RunTime.Unlock()
+	config.RunTime.RunEmberPoll = run
+}
+
+func (config *AppConfig) ShouldRunEmberPoll() bool {
+	config.RunTime.RLock()
+	defer config.RunTime.RUnlock()
+	return config.RunTime.RunEmberPoll
+}
+
+func (config *AppConfig) SetGpioConnected(connected bool) {
+	config.RunTime.Lock()
+	defer config.RunTime.Unlock()
+	config.RunTime.GpioConnected = connected
+}
+
+func (config *AppConfig) IncStreamScrapeCount() {
+	config.RunTime.Lock()
+	defer config.RunTime.Unlock()
+	config.RunTime.StreamScrapeCount++
+}
+
+func (config *AppConfig) IncStreamVolDetectCount() {
+	config.RunTime.Lock()
+	defer config.RunTime.Unlock()
+	config.RunTime.StreamVolDetectCount++
 }
