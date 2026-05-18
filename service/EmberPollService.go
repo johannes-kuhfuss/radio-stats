@@ -4,12 +4,12 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/johannes-kuhfuss/emberplus/emberclient"
 	"github.com/johannes-kuhfuss/radio-stats/config"
 	"github.com/johannes-kuhfuss/services_utils/logger"
-	"github.com/johannes-kuhfuss/services_utils/misc"
 )
 
 type EmberPoller interface {
@@ -98,7 +98,7 @@ func (s DefaultEmberPollService) PollRun() {
 
 func (s DefaultEmberPollService) updateMetrics(clientConfig config.EmberConfig, emberData map[string]map[string]any) {
 	for e, d := range emberData {
-		if misc.SliceContainsString(clientConfig.GPIOs, e) {
+		if slices.Contains(clientConfig.GPIOs, e) {
 			if d["description"] != nil && d["value"] != nil {
 				metricName := clientConfig.MetricsPrefix + d["description"].(string)
 				metricsValue := d["value"].(bool)
