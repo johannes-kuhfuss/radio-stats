@@ -22,6 +22,10 @@ type DefaultStreamVolDetectService struct {
 	Cfg *config.AppConfig
 }
 
+var ffmpegCombinedOutput = func(ctx context.Context, name string, args ...string) ([]byte, error) {
+	return exec.CommandContext(ctx, name, args...).CombinedOutput()
+}
+
 func NewStreamVolDetectService(cfg *config.AppConfig) DefaultStreamVolDetectService {
 	return DefaultStreamVolDetectService{
 		Cfg: cfg,
@@ -82,8 +86,7 @@ func (s DefaultStreamVolDetectService) runFfmpeg(streamUrl string) (lines []stri
 	ctx := context.Background()
 	timeout := time.Duration(s.Cfg.StreamVolDetect.Duration+5) * time.Second
 	ctx, cancel := context.WithTimeout(ctx, timeout)
-	cmd := exec.CommandContext(ctx, s.Cfg.StreamVolDetect.FfmpegExe, "-t", strconv.Itoa(s.Cfg.StreamVolDetect.Duration), "-i", streamUrl, "-af", "volumedetect", "-f", "null", "/dev/null")
-	out, err := cmd.CombinedOutput()
+	out, err := ffmpegCombinedOutput(ctx, s.Cfg.StreamVolDetect.FfmpegExe, "-t", strconv.Itoa(s.Cfg.StreamVolDetect.Duration), "-i", streamUrl, "-af", "volumedetect", "-f", "null", "/dev/null")
 	if err != nil {
 		cancel()
 		logger.Error(fmt.Sprintf("Could not execute ffmpeg on URL %v: ", streamUrl), err)

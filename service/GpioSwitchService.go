@@ -24,6 +24,7 @@ type DefaultGpioSwitchService struct {
 var (
 	httpGpioSwitchTr     http.Transport
 	httpGpioSwitchClient http.Client
+	gpioSwitchDelay      = 250 * time.Millisecond
 )
 
 func NewGpioSwitchService(cfg *config.AppConfig) DefaultGpioSwitchService {
@@ -89,7 +90,7 @@ func (s DefaultGpioSwitchService) Switch(xPoint string) (err api_error.ApiErr) {
 		return api_error.NewInternalServerError(msg, nil)
 	}
 
-	time.Sleep(250 * time.Millisecond)
+	time.Sleep(gpioSwitchDelay)
 
 	resp, reqErr = httpGpioSwitchClient.Do(req)
 	if reqErr != nil {
@@ -104,7 +105,7 @@ func (s DefaultGpioSwitchService) Switch(xPoint string) (err api_error.ApiErr) {
 		return api_error.NewInternalServerError(msg, nil)
 	}
 
-	time.Sleep(250 * time.Millisecond)
+	time.Sleep(gpioSwitchDelay)
 
 	return nil
 }

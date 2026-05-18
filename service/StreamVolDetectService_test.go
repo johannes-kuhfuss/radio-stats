@@ -2,6 +2,8 @@ package service
 
 import (
 	"bufio"
+	"context"
+	"errors"
 	"os"
 	"testing"
 
@@ -20,17 +22,24 @@ const (
 )
 
 func TestListenNoUrlSetsRunToFalse(t *testing.T) {
+	volCfg = config.AppConfig{}
 	volService = NewStreamVolDetectService(&volCfg)
-	volService.Cfg.StreamScrape.Url = ""
+	volService.Cfg.SetRunListen(true)
 
 	volService.Listen()
 
-	assert.EqualValues(t, false, volCfg.RunTime.RunScrape)
+	assert.EqualValues(t, false, volCfg.RunTime.RunListen)
 }
 
 func TestRunFfmpegErrorExecReturnsNil(t *testing.T) {
+	oldFfmpegCombinedOutput := ffmpegCombinedOutput
+	defer func() { ffmpegCombinedOutput = oldFfmpegCombinedOutput }()
+	ffmpegCombinedOutput = func(ctx context.Context, name string, args ...string) ([]byte, error) {
+		return nil, errors.New("ffmpeg failed")
+	}
+
+	volCfg = config.AppConfig{}
 	volService = NewStreamVolDetectService(&volCfg)
-	volService.Cfg.StreamVolDetect.FfmpegExe = "i-dont-exist"
 
 	result := volService.runFfmpeg("")
 
@@ -38,8 +47,14 @@ func TestRunFfmpegErrorExecReturnsNil(t *testing.T) {
 }
 
 func TestRunFfmpegLocalExecReturnsResult(t *testing.T) {
+	oldFfmpegCombinedOutput := ffmpegCombinedOutput
+	defer func() { ffmpegCombinedOutput = oldFfmpegCombinedOutput }()
+	ffmpegCombinedOutput = func(ctx context.Context, name string, args ...string) ([]byte, error) {
+		return []byte("ffmpeg version test\n[Parsed_volumedetect_0] mean_volume: -0.3 dB"), nil
+	}
+
+	volCfg = config.AppConfig{}
 	volService = NewStreamVolDetectService(&volCfg)
-	volService.Cfg.StreamVolDetect.FfmpegExe = "../prog/ffmpeg.exe"
 	volService.Cfg.StreamVolDetect.Urls = []string{streamingUrl}
 	volService.Cfg.StreamVolDetect.Duration = 1
 
@@ -51,6 +66,7 @@ func TestRunFfmpegLocalExecReturnsResult(t *testing.T) {
 
 func TestUpdateMetricsUpdatesMetrics(t *testing.T) {
 	var lines []string
+	volCfg = config.AppConfig{}
 	volService = NewStreamVolDetectService(&volCfg)
 	f, _ := os.Open("../samples/ffmpeg_sample_result.txt")
 	defer f.Close()
@@ -73,6 +89,13 @@ func TestUpdateMetricsUpdatesMetrics(t *testing.T) {
 }
 
 func TestListenRunUpdateCounts(t *testing.T) {
+	oldFfmpegCombinedOutput := ffmpegCombinedOutput
+	defer func() { ffmpegCombinedOutput = oldFfmpegCombinedOutput }()
+	ffmpegCombinedOutput = func(ctx context.Context, name string, args ...string) ([]byte, error) {
+		return []byte("no volume data"), nil
+	}
+
+	volCfg = config.AppConfig{}
 	volService = NewStreamVolDetectService(&volCfg)
 	volService.Cfg.Metrics.StreamVolDetectCount = prometheus.NewCounter(prometheus.CounterOpts{
 		Namespace: "Coloradio",

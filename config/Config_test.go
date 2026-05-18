@@ -114,6 +114,37 @@ func TestDecodeValidaDataReturnsNoError(t *testing.T) {
 	assert.EqualValues(t, false, dec[20].Invert)
 }
 
+func TestEmberDecodeInvalidStringReturnsError(t *testing.T) {
+	var dec EmberConfigDecoder
+
+	err := dec.Decode("this will not work")
+
+	assert.NotNil(t, err)
+	assert.EqualValues(t, "invalid map item: \"this will not work\"", err.Error())
+}
+
+func TestEmberDecodeInvalidJsonReturnsError(t *testing.T) {
+	var dec EmberConfigDecoder
+
+	err := dec.Decode("host={no json to be found}")
+
+	assert.NotNil(t, err)
+	assert.EqualValues(t, "invalid map json: invalid character 'n' looking for beginning of object key string", err.Error())
+}
+
+func TestEmberDecodeValidDataReturnsNoError(t *testing.T) {
+	var dec EmberConfigDecoder
+
+	err := dec.Decode("host={\"port\":9000,\"entrypath\":\"1.2.3\",\"metricsprefix\":\"ember_\",\"gpios\":[\"1\",\"2\"]}")
+
+	assert.Nil(t, err)
+	assert.EqualValues(t, 1, len(dec))
+	assert.EqualValues(t, 9000, dec["host"].Port)
+	assert.EqualValues(t, "1.2.3", dec["host"].EntryPath)
+	assert.EqualValues(t, "ember_", dec["host"].MetricsPrefix)
+	assert.EqualValues(t, []string{"1", "2"}, dec["host"].GPIOs)
+}
+
 func TestSetupGpiosEmptyConfigReturnsEmptyGpioData(t *testing.T) {
 	var emptyCfg AppConfig
 	SetupGpios(&emptyCfg)
@@ -134,4 +165,24 @@ func TestSetupGpios2GpiosReturnsGpioData(t *testing.T) {
 	assert.EqualValues(t, "SD1 Master Alarm", cfg.RunTime.Gpios[0].Name)
 	assert.EqualValues(t, 20, cfg.RunTime.Gpios[1].Id)
 	assert.EqualValues(t, false, cfg.RunTime.Gpios[1].State)
+}
+
+func TestRuntimeSettersAndCounters(t *testing.T) {
+	var cfg AppConfig
+
+	cfg.SetRunScrape(true)
+	cfg.SetRunListen(true)
+	cfg.SetRunGpioPoll(true)
+	cfg.SetRunEmberPoll(true)
+	cfg.SetGpioConnected(true)
+	cfg.IncStreamScrapeCount()
+	cfg.IncStreamVolDetectCount()
+
+	assert.True(t, cfg.ShouldRunScrape())
+	assert.True(t, cfg.ShouldRunListen())
+	assert.True(t, cfg.ShouldRunGpioPoll())
+	assert.True(t, cfg.ShouldRunEmberPoll())
+	assert.True(t, cfg.RunTime.GpioConnected)
+	assert.EqualValues(t, 1, cfg.RunTime.StreamScrapeCount)
+	assert.EqualValues(t, 1, cfg.RunTime.StreamVolDetectCount)
 }

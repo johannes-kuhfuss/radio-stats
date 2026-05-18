@@ -37,7 +37,7 @@ func checkAuth(adminuser, adminpwhash string, authHeaders []string) (found bool,
 			if parts[0] == adminuser {
 				err := bcrypt.CompareHashAndPassword([]byte(adminpwhash), []byte(parts[1]))
 				if err == nil {
-					return true, user
+					return true, parts[0]
 				}
 			}
 		}
