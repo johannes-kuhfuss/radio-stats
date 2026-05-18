@@ -6,7 +6,7 @@ RUN git clone https://github.com/johannes-kuhfuss/radio-stats.git
 WORKDIR /build/radio-stats
 RUN go build -o /build/radio-stats/radio-stats /build/radio-stats/main.go
 # Run container
-FROM alpine:3.23.3
+FROM alpine:3.23.4
 RUN apk -U upgrade --no-cache && apk add --no-cache ffmpeg && rm -rf /var/cache/apk/* && mkdir /app
 WORKDIR /app
 COPY --from=0 /build/radio-stats/radio-stats /app/radio-stats
