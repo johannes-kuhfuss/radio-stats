@@ -62,12 +62,14 @@ func TestUpdateMetricsUpdatesMetrics(t *testing.T) {
 	var lines []string
 	volCfg = config.AppConfig{}
 	volService = NewStreamVolDetectService(&volCfg)
-	f, _ := os.Open("../samples/ffmpeg_sample_result.txt")
+	f, err := os.Open("../samples/ffmpeg_sample_result.txt")
+	assert.NoError(t, err)
 	defer f.Close()
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
+	assert.NoError(t, scanner.Err())
 	volService.Cfg.RunTime.StreamVolumes.Vols = make(map[string]float64)
 	volService.Cfg.Metrics.StreamVolume = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "Coloradio",
