@@ -21,6 +21,8 @@ STREAM_SCRAPE_INTERVAL_SEC=5
 EXPECTED_SERVER_NAME=coloRadio
 STREAM_VOLDETECT_URLS=http://example.test/stream.mp3
 STREAM_VOLDETECT_FFMPEG=/usr/bin/ffmpeg
+STREAM_VOLDETECT_SILENCE_THRESHOLD_DB=-60
+STREAM_VOLDETECT_SILENCE_DURATION_SEC=10
 GPIO_HOST=192.0.2.10
 GPIO_USER=reader
 GPIO_PASSWORD=reader
@@ -56,3 +58,7 @@ go test ./... -count=1
 ## Notes
 
 The long-running pollers support context cancellation internally. Tests use injected HTTP clients, ffmpeg runners, and Ember connections so they do not depend on live devices or streams.
+
+Stream volume detection exports RMS volume, one-second sample peak, EBU R128 short-term loudness, silence state and duration, detector health, restart count, and the last successful measurement timestamp. Silence is declared only after the audio remains below `STREAM_VOLDETECT_SILENCE_THRESHOLD_DB` for `STREAM_VOLDETECT_SILENCE_DURATION_SEC` seconds.
+
+The corresponding Prometheus metric names are `Coloradio_Streams_volume`, `Coloradio_Streams_audio_peak_dbfs`, `Coloradio_Streams_audio_loudness_shortterm_lufs`, `Coloradio_Streams_audio_silent`, `Coloradio_Streams_audio_silence_duration_seconds`, `Coloradio_Streams_volume_detector_up`, `Coloradio_Streams_volume_detector_restarts_total`, and `Coloradio_Streams_volume_last_measurement_timestamp_seconds`.

@@ -56,6 +56,8 @@ func TestInitConfigWithEnvFileSetsValues(t *testing.T) {
 	assert.Nil(t, err)
 	assert.EqualValues(t, 10, testConfig.Server.GracefulShutdownTime)
 	assert.EqualValues(t, "debug", testConfig.Gin.Mode)
+	assert.EqualValues(t, -60, testConfig.StreamVolDetect.SilenceThresholdDB)
+	assert.EqualValues(t, 10, testConfig.StreamVolDetect.SilenceDurationSec)
 }
 
 func TestDecodeInvalidStringReturnsError(t *testing.T) {

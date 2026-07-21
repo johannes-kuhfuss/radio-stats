@@ -75,6 +75,34 @@ func TestInitMetricsCanRunTwiceOnSameRegistry(t *testing.T) {
 	assert.NotNil(t, cfg.Metrics.StreamListenerGauge)
 	assert.NotNil(t, cfg.Metrics.GpioStateGauge)
 	assert.NotNil(t, cfg.Metrics.StreamVolume)
+	assert.NotNil(t, cfg.Metrics.StreamAudioPeak)
+	assert.NotNil(t, cfg.Metrics.StreamAudioLoudness)
+	assert.NotNil(t, cfg.Metrics.StreamAudioSilent)
+	assert.NotNil(t, cfg.Metrics.StreamSilenceDuration)
+	assert.NotNil(t, cfg.Metrics.StreamVolDetectorUp)
+	assert.NotNil(t, cfg.Metrics.StreamVolRestarts)
+	assert.NotNil(t, cfg.Metrics.StreamVolLastSample)
+
+	cfg.Metrics.StreamAudioPeak.WithLabelValues("test").Set(0)
+	cfg.Metrics.StreamAudioLoudness.WithLabelValues("test").Set(0)
+	cfg.Metrics.StreamAudioSilent.WithLabelValues("test").Set(0)
+	cfg.Metrics.StreamSilenceDuration.WithLabelValues("test").Set(0)
+	cfg.Metrics.StreamVolDetectorUp.WithLabelValues("test").Set(0)
+	cfg.Metrics.StreamVolRestarts.WithLabelValues("test").Add(0)
+	cfg.Metrics.StreamVolLastSample.WithLabelValues("test").Set(0)
+	metricFamilies, err := registry.Gather()
+	assert.NoError(t, err)
+	metricNames := make([]string, 0, len(metricFamilies))
+	for _, family := range metricFamilies {
+		metricNames = append(metricNames, family.GetName())
+	}
+	assert.Contains(t, metricNames, "Coloradio_Streams_audio_peak_dbfs")
+	assert.Contains(t, metricNames, "Coloradio_Streams_audio_loudness_shortterm_lufs")
+	assert.Contains(t, metricNames, "Coloradio_Streams_audio_silent")
+	assert.Contains(t, metricNames, "Coloradio_Streams_audio_silence_duration_seconds")
+	assert.Contains(t, metricNames, "Coloradio_Streams_volume_detector_up")
+	assert.Contains(t, metricNames, "Coloradio_Streams_volume_detector_restarts_total")
+	assert.Contains(t, metricNames, "Coloradio_Streams_volume_last_measurement_timestamp_seconds")
 }
 
 func TestMapUrlsProtectsSwitchRoute(t *testing.T) {

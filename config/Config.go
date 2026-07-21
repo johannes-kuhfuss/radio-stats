@@ -119,10 +119,12 @@ type AppConfig struct {
 		ExpectedServerName string `envconfig:"EXPECTED_SERVER_NAME" default:"ignore"` //was: "coloRadio"
 	}
 	StreamVolDetect struct {
-		Urls        []string `envconfig:"STREAM_VOLDETECT_URLS"`
-		IntervalSec int      `envconfig:"STREAM_VOLDETECT_INTERVAL_SEC" default:"5"`
-		Duration    int      `envconfig:"STREAM_VOLDETECT_DURATION" default:"4"`
-		FfmpegExe   string   `envconfig:"STREAM_VOLDETECT_FFMPEG" default:"/usr/bin/ffmpeg"`
+		Urls               []string `envconfig:"STREAM_VOLDETECT_URLS"`
+		IntervalSec        int      `envconfig:"STREAM_VOLDETECT_INTERVAL_SEC" default:"5"`
+		Duration           int      `envconfig:"STREAM_VOLDETECT_DURATION" default:"4"`
+		FfmpegExe          string   `envconfig:"STREAM_VOLDETECT_FFMPEG" default:"/usr/bin/ffmpeg"`
+		SilenceThresholdDB float64  `envconfig:"STREAM_VOLDETECT_SILENCE_THRESHOLD_DB" default:"-60"`
+		SilenceDurationSec int      `envconfig:"STREAM_VOLDETECT_SILENCE_DURATION_SEC" default:"10"`
 	}
 	Gpio struct {
 		Host        string           `envconfig:"GPIO_HOST"`
@@ -137,11 +139,18 @@ type AppConfig struct {
 		InConfig    EmberConfigDecoder `envconfig:"EMBER_IN_CONFIG"`
 	}
 	Metrics struct {
-		StreamListenerGauge  prometheus.GaugeVec
-		StreamScrapeCount    prometheus.Counter
-		GpioStateGauge       prometheus.GaugeVec
-		StreamVolDetectCount prometheus.Counter
-		StreamVolume         prometheus.GaugeVec
+		StreamListenerGauge   prometheus.GaugeVec
+		StreamScrapeCount     prometheus.Counter
+		GpioStateGauge        prometheus.GaugeVec
+		StreamVolDetectCount  prometheus.Counter
+		StreamVolume          prometheus.GaugeVec
+		StreamAudioPeak       prometheus.GaugeVec
+		StreamAudioLoudness   prometheus.GaugeVec
+		StreamAudioSilent     prometheus.GaugeVec
+		StreamSilenceDuration prometheus.GaugeVec
+		StreamVolDetectorUp   prometheus.GaugeVec
+		StreamVolRestarts     prometheus.CounterVec
+		StreamVolLastSample   prometheus.GaugeVec
 	}
 	RunTime struct {
 		sync.RWMutex

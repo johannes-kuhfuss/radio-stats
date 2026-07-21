@@ -8,7 +8,6 @@ import (
 	"io"
 	"math"
 	"os/exec"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -18,9 +17,12 @@ import (
 	"github.com/johannes-kuhfuss/services_utils/logger"
 )
 
-const ffmpegSampleRate = 48000
-
-var rmsLevelPattern = regexp.MustCompile(`lavfi\.astats\.Overall\.RMS_level=(-?(?:\d+(?:\.\d*)?|\.\d+|inf))`)
+const (
+	ffmpegSampleRate = 48000
+	rmsMetadataKey   = "lavfi.astats.Overall.RMS_level"
+	peakMetadataKey  = "lavfi.astats.Overall.Peak_level"
+	lufsMetadataKey  = "lavfi.r128.S"
+)
 
 type StreamVolDetector interface {
 	Listen()
@@ -110,24 +112,28 @@ func (s DefaultStreamVolDetectService) ListenContext(ctx context.Context) {
 }
 
 func (s DefaultStreamVolDetectService) listenStream(ctx context.Context, streamURL string) {
-	window := newVolumeWindow(s.Cfg.StreamVolDetect.Duration, s.Cfg.StreamVolDetect.IntervalSec)
+	monitor := newStreamAudioMonitor(s, streamURL)
+	monitor.reset()
+	s.Cfg.Metrics.StreamVolRestarts.WithLabelValues(streamURL).Add(0)
 	backoff := time.Second
+	attempt := 0
 	for ctx.Err() == nil {
+		if attempt > 0 {
+			s.Cfg.Metrics.StreamVolRestarts.WithLabelValues(streamURL).Inc()
+		}
+		attempt++
+		s.Cfg.Metrics.StreamVolDetectorUp.WithLabelValues(streamURL).Set(0)
 		err := s.FfmpegRunner(ctx, s.Cfg.StreamVolDetect.FfmpegExe, ffmpegArgs(streamURL), func(line string) {
-			level, ok := parseRMSLevel(line)
-			if !ok {
-				return
-			}
-			if meanLevel, complete := window.add(level); complete {
-				s.updateVolMetric(meanLevel, streamURL)
+			if monitor.handleLine(line) {
 				backoff = time.Second
 			}
 		})
+		s.Cfg.Metrics.StreamVolDetectorUp.WithLabelValues(streamURL).Set(0)
 		if ctx.Err() != nil {
 			return
 		}
 
-		window.reset()
+		monitor.reset()
 		logger.Error(fmt.Sprintf("ffmpeg exited for URL %v: ", streamURL), err)
 		select {
 		case <-ctx.Done():
@@ -153,25 +159,123 @@ func ffmpegArgs(streamURL string) []string {
 		"-reconnect_on_network_error", "1",
 		"-i", streamURL,
 		"-vn",
-		"-af", fmt.Sprintf(
-			"aresample=%d,asetnsamples=n=%d:p=0,astats=metadata=1:reset=1:measure_perchannel=none:measure_overall=RMS_level,ametadata=mode=print:key=lavfi.astats.Overall.RMS_level",
+		"-filter_complex", fmt.Sprintf(
+			"[0:a]asplit=2[stats][loudness];[stats]aresample=%d,asetnsamples=n=%d:p=0,astats=metadata=1:reset=1:measure_perchannel=none:measure_overall=RMS_level+Peak_level,ametadata=mode=print[stats_out];[loudness]ebur128=metadata=1,ametadata=mode=print,anullsink",
 			ffmpegSampleRate,
 			ffmpegSampleRate,
 		),
+		"-map", "[stats_out]",
 		"-f", "null", "-",
 	}
 }
 
 func parseRMSLevel(line string) (float64, bool) {
-	match := rmsLevelPattern.FindStringSubmatch(line)
-	if len(match) != 2 {
+	return parseMetadataValue(line, rmsMetadataKey)
+}
+
+func parseMetadataValue(line, key string) (float64, bool) {
+	prefix := key + "="
+	index := strings.Index(line, prefix)
+	if index < 0 {
 		return 0, false
 	}
-	if strings.EqualFold(match[1], "-inf") {
+	valueText := strings.TrimSpace(line[index+len(prefix):])
+	if fields := strings.Fields(valueText); len(fields) > 0 {
+		valueText = fields[0]
+	}
+	if strings.EqualFold(valueText, "-inf") {
 		return math.Inf(-1), true
 	}
-	level, err := strconv.ParseFloat(match[1], 64)
+	level, err := strconv.ParseFloat(valueText, 64)
 	return level, err == nil && !math.IsNaN(level)
+}
+
+type streamAudioMonitor struct {
+	service *DefaultStreamVolDetectService
+	url     string
+	window  *volumeWindow
+	silence *silenceTracker
+}
+
+func newStreamAudioMonitor(service DefaultStreamVolDetectService, streamURL string) *streamAudioMonitor {
+	return &streamAudioMonitor{
+		service: &service,
+		url:     streamURL,
+		window:  newVolumeWindow(service.Cfg.StreamVolDetect.Duration, service.Cfg.StreamVolDetect.IntervalSec),
+		silence: newSilenceTracker(service.Cfg.StreamVolDetect.SilenceThresholdDB, service.Cfg.StreamVolDetect.SilenceDurationSec),
+	}
+}
+
+// handleLine updates the metric represented by line and reports whether the
+// line contained a valid audio measurement.
+func (m *streamAudioMonitor) handleLine(line string) bool {
+	if level, ok := parseMetadataValue(line, rmsMetadataKey); ok {
+		m.markMeasurement()
+		duration, silent := m.silence.observe(level)
+		m.service.Cfg.Metrics.StreamSilenceDuration.WithLabelValues(m.url).Set(duration)
+		m.service.Cfg.Metrics.StreamAudioSilent.WithLabelValues(m.url).Set(boolFloat(silent))
+		if meanLevel, complete := m.window.add(level); complete {
+			m.service.updateVolMetric(meanLevel, m.url)
+		}
+		return true
+	}
+	if level, ok := parseMetadataValue(line, peakMetadataKey); ok {
+		m.markMeasurement()
+		m.service.Cfg.Metrics.StreamAudioPeak.WithLabelValues(m.url).Set(level)
+		return true
+	}
+	if loudness, ok := parseMetadataValue(line, lufsMetadataKey); ok {
+		m.markMeasurement()
+		m.service.Cfg.Metrics.StreamAudioLoudness.WithLabelValues(m.url).Set(loudness)
+		return true
+	}
+	return false
+}
+
+func (m *streamAudioMonitor) markMeasurement() {
+	m.service.Cfg.Metrics.StreamVolDetectorUp.WithLabelValues(m.url).Set(1)
+	m.service.Cfg.Metrics.StreamVolLastSample.WithLabelValues(m.url).SetToCurrentTime()
+}
+
+func (m *streamAudioMonitor) reset() {
+	m.window.reset()
+	m.silence.reset()
+	m.service.Cfg.Metrics.StreamVolDetectorUp.WithLabelValues(m.url).Set(0)
+	m.service.Cfg.Metrics.StreamAudioSilent.WithLabelValues(m.url).Set(0)
+	m.service.Cfg.Metrics.StreamSilenceDuration.WithLabelValues(m.url).Set(0)
+}
+
+func boolFloat(value bool) float64 {
+	if value {
+		return 1
+	}
+	return 0
+}
+
+type silenceTracker struct {
+	thresholdDB    float64
+	holdSeconds    int
+	currentSeconds int
+}
+
+func newSilenceTracker(thresholdDB float64, holdSeconds int) *silenceTracker {
+	if holdSeconds < 1 {
+		holdSeconds = 1
+	}
+	return &silenceTracker{thresholdDB: thresholdDB, holdSeconds: holdSeconds}
+}
+
+func (s *silenceTracker) observe(level float64) (float64, bool) {
+	if level <= s.thresholdDB {
+		s.currentSeconds++
+	} else {
+		s.currentSeconds = 0
+	}
+	return float64(s.currentSeconds), s.currentSeconds >= s.holdSeconds
+}
+
+func (s *silenceTracker) reset() {
+	s.currentSeconds = 0
 }
 
 func (s DefaultStreamVolDetectService) increaseDetectCount() {

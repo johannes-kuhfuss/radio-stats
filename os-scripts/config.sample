@@ -43,6 +43,10 @@ STREAM_VOLDETECT_URLS="https://streaming.fueralle.org/coloradio_48.aac"
 ##STREAM_VOLDETECT_DURATION=""
 # Path to ffmpeg - defaults to "/usr/bin/ffmpeg"
 ##STREAM_VOLDETECT_FFMPEG=""
+# Audio level in dBFS considered silent - defaults to "-60"
+##STREAM_VOLDETECT_SILENCE_THRESHOLD_DB=""
+# Seconds below the threshold before audio_silent becomes 1 - defaults to "10"
+##STREAM_VOLDETECT_SILENCE_DURATION_SEC=""
 
 # GPIO Configuration
 # Host to connect to for GPIO information - no default *** must set ***

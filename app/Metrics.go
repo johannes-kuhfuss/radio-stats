@@ -59,6 +59,62 @@ func initMetricsWithRegisterer(registerer prometheus.Registerer) {
 		"streamName",
 	})
 	cfg.Metrics.StreamVolume = *registerGaugeVec(registerer, streamVolume)
+
+	streamAudioPeak := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "Coloradio",
+		Subsystem: "Streams",
+		Name:      "audio_peak_dbfs",
+		Help:      "Peak audio sample level in dBFS over the latest one-second window",
+	}, []string{"streamName"})
+	cfg.Metrics.StreamAudioPeak = *registerGaugeVec(registerer, streamAudioPeak)
+
+	streamAudioLoudness := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "Coloradio",
+		Subsystem: "Streams",
+		Name:      "audio_loudness_shortterm_lufs",
+		Help:      "EBU R128 short-term audio loudness in LUFS",
+	}, []string{"streamName"})
+	cfg.Metrics.StreamAudioLoudness = *registerGaugeVec(registerer, streamAudioLoudness)
+
+	streamAudioSilent := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "Coloradio",
+		Subsystem: "Streams",
+		Name:      "audio_silent",
+		Help:      "Whether audio has remained below the configured silence threshold for the configured duration",
+	}, []string{"streamName"})
+	cfg.Metrics.StreamAudioSilent = *registerGaugeVec(registerer, streamAudioSilent)
+
+	streamSilenceDuration := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "Coloradio",
+		Subsystem: "Streams",
+		Name:      "audio_silence_duration_seconds",
+		Help:      "Current consecutive time that audio has remained below the configured silence threshold",
+	}, []string{"streamName"})
+	cfg.Metrics.StreamSilenceDuration = *registerGaugeVec(registerer, streamSilenceDuration)
+
+	streamVolDetectorUp := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "Coloradio",
+		Subsystem: "Streams",
+		Name:      "volume_detector_up",
+		Help:      "Whether ffmpeg has produced valid measurements since it started and has not exited",
+	}, []string{"streamName"})
+	cfg.Metrics.StreamVolDetectorUp = *registerGaugeVec(registerer, streamVolDetectorUp)
+
+	streamVolRestarts := prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "Coloradio",
+		Subsystem: "Streams",
+		Name:      "volume_detector_restarts_total",
+		Help:      "Number of times the ffmpeg volume detector process was restarted",
+	}, []string{"streamName"})
+	cfg.Metrics.StreamVolRestarts = *registerCounterVec(registerer, streamVolRestarts)
+
+	streamVolLastSample := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "Coloradio",
+		Subsystem: "Streams",
+		Name:      "volume_last_measurement_timestamp_seconds",
+		Help:      "Unix timestamp of the latest valid volume detector measurement",
+	}, []string{"streamName"})
+	cfg.Metrics.StreamVolLastSample = *registerGaugeVec(registerer, streamVolLastSample)
 }
 
 func registerGaugeVec(registerer prometheus.Registerer, collector *prometheus.GaugeVec) *prometheus.GaugeVec {
@@ -81,6 +137,18 @@ func registerCounter(registerer prometheus.Registerer, collector prometheus.Coun
 			}
 		}
 		logger.Error("Could not register Prometheus counter", err)
+	}
+	return collector
+}
+
+func registerCounterVec(registerer prometheus.Registerer, collector *prometheus.CounterVec) *prometheus.CounterVec {
+	if err := registerer.Register(collector); err != nil {
+		if alreadyRegistered, ok := err.(prometheus.AlreadyRegisteredError); ok {
+			if existing, ok := alreadyRegistered.ExistingCollector.(*prometheus.CounterVec); ok {
+				return existing
+			}
+		}
+		logger.Error("Could not register Prometheus counter vector", err)
 	}
 	return collector
 }
