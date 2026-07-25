@@ -20,7 +20,7 @@ require (
 )
 
 require (
-	github.com/johannes-kuhfuss/emberplus v1.1.0
+	github.com/johannes-kuhfuss/emberplus v1.0.19
 	github.com/prometheus/client_model v0.6.2
 )
 
