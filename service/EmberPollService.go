@@ -8,6 +8,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/johannes-kuhfuss/emberplus/ember"
 	"github.com/johannes-kuhfuss/emberplus/emberclient"
 	"github.com/johannes-kuhfuss/radio-stats/config"
 	"github.com/johannes-kuhfuss/services_utils/logger"
@@ -19,6 +20,19 @@ type EmberPoller interface {
 }
 
 type EmberClientFactory func(string, int) (config.EmberConnection, error)
+
+type glow250EmberClient struct {
+	*emberclient.EmberClient
+}
+
+func (c *glow250EmberClient) GetByType(elementType ember.ElementType, path string) ([]byte, error) {
+	collection, err := c.GetElementCollectionGlow250(elementType, path)
+	if err != nil {
+		return nil, err
+	}
+
+	return collection.MarshalJSON()
+}
 
 type DefaultEmberPollService struct {
 	Cfg           *config.AppConfig
@@ -33,7 +47,12 @@ func NewEmberPollService(cfg *config.AppConfig) DefaultEmberPollService {
 }
 
 func newEmberClient(host string, port int) (config.EmberConnection, error) {
-	return emberclient.NewEmberClient(host, port)
+	client, err := emberclient.NewEmberClient(host, port)
+	if err != nil {
+		return nil, err
+	}
+
+	return &glow250EmberClient{EmberClient: client}, nil
 }
 
 func (s DefaultEmberPollService) InitEmberConn() {
