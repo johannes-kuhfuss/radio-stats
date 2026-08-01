@@ -102,6 +102,33 @@ func TestInitEmberConnUsesFactoryAndStoresConnection(t *testing.T) {
 	assert.EqualValues(t, 1, fakeConn.connectCount)
 }
 
+func TestInitEmberConnRetainsConnectionAfterInitialConnectFailure(t *testing.T) {
+	cfg := config.AppConfig{}
+	cfg.RunTime.EmberGpios = make(map[string]config.EmberConfig)
+	cfg.Ember.InConfig = config.EmberConfigDecoder{
+		"host": {Port: 9000, EntryPath: "1.2.3"},
+	}
+	fakeConn := &fakeEmberConn{connectErr: errors.New("no route to host")}
+	svc := NewEmberPollService(&cfg)
+	svc.ClientFactory = func(string, int) (config.EmberConnection, error) {
+		return fakeConn, nil
+	}
+
+	svc.InitEmberConn()
+
+	assert.Same(t, fakeConn, cfg.RunTime.EmberGpios["host"].Conn)
+	assert.EqualValues(t, 1, fakeConn.connectCount)
+
+	// Once the network is available, a failed poll must be able to reconnect
+	// the client retained during initialization.
+	fakeConn.connectErr = nil
+	fakeConn.getErr = errors.New("not connected")
+	svc.PollRun()
+
+	assert.EqualValues(t, 1, fakeConn.disconnectCount)
+	assert.EqualValues(t, 2, fakeConn.connectCount)
+}
+
 func TestPollRunReadsEmberData(t *testing.T) {
 	cfg := config.AppConfig{}
 	cfg.RunTime.EmberGpios = make(map[string]config.EmberConfig)
@@ -131,13 +158,17 @@ func TestPollRunReconnectsOnReadError(t *testing.T) {
 	cfg := config.AppConfig{}
 	cfg.RunTime.EmberGpios = make(map[string]config.EmberConfig)
 	fakeConn := &fakeEmberConn{getErr: errors.New("read failed")}
+	healthyConn := &fakeEmberConn{data: []byte(`{}`)}
 	cfg.RunTime.EmberGpios["host"] = config.EmberConfig{Conn: fakeConn}
+	cfg.RunTime.EmberGpios["healthy"] = config.EmberConfig{Conn: healthyConn}
 	svc := NewEmberPollService(&cfg)
 
 	svc.PollRun()
 
 	assert.EqualValues(t, 1, fakeConn.disconnectCount)
 	assert.EqualValues(t, 1, fakeConn.connectCount)
+	assert.EqualValues(t, 0, healthyConn.disconnectCount)
+	assert.EqualValues(t, 0, healthyConn.connectCount)
 }
 
 func gaugeValue(metric prometheus.Metric) float64 {

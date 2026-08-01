@@ -72,13 +72,13 @@ func (s DefaultEmberPollService) InitEmberConn() {
 			continue
 		}
 		emberClientConfig.Conn = emberClient
+		s.Cfg.RunTime.Lock()
+		s.Cfg.RunTime.EmberGpios[host] = emberClientConfig
+		s.Cfg.RunTime.Unlock()
 		if err := emberClientConfig.Conn.Connect(); err != nil {
 			logger.Error(fmt.Sprintf("could not connect to Ember host %v on port %v", host, emberClientConfig.Port), err)
 			continue
 		}
-		s.Cfg.RunTime.Lock()
-		s.Cfg.RunTime.EmberGpios[host] = emberClientConfig
-		s.Cfg.RunTime.Unlock()
 	}
 }
 
@@ -90,13 +90,17 @@ func (s DefaultEmberPollService) Reconnect() {
 	}
 	s.Cfg.RunTime.RUnlock()
 	for host, hostData := range emberGpios {
-		if hostData.Conn == nil {
-			continue
-		}
-		hostData.Conn.Disconnect()
-		if err := hostData.Conn.Connect(); err != nil {
-			logger.Errorf("Could not reconnect to host %v. %v", host, err)
-		}
+		reconnectEmber(host, hostData.Conn)
+	}
+}
+
+func reconnectEmber(host string, conn config.EmberConnection) {
+	if conn == nil {
+		return
+	}
+	_ = conn.Disconnect()
+	if err := conn.Connect(); err != nil {
+		logger.Errorf("Could not reconnect to host %v. %v", host, err)
 	}
 }
 
@@ -161,7 +165,7 @@ func (s DefaultEmberPollService) PollRun() {
 		}
 		data, err := clientConfig.Conn.GetByType("node", clientConfig.EntryPath)
 		if err != nil {
-			s.Reconnect()
+			reconnectEmber(host, clientConfig.Conn)
 			logger.Error(fmt.Sprintf("Could not get data from Ember provider. Host: %v, Port: %v", host, clientConfig.Port), err)
 			continue
 		}
