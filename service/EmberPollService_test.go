@@ -154,6 +154,46 @@ func TestPollRunReadsEmberData(t *testing.T) {
 	assert.EqualValues(t, 1, gaugeValue(cfg.Metrics.GpioStateGauge.WithLabelValues("ember_on_air")))
 }
 
+func TestPollEmberProviderDoesNotReuseAnotherProvidersData(t *testing.T) {
+	cfg := config.AppConfig{}
+	cfg.Metrics.GpioStateGauge = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "Coloradio",
+		Subsystem: "GPIOs",
+		Name:      "status",
+		Help:      "Status of GPIO 1 (active) or 0 (inactive)",
+	}, []string{"gpioName"})
+	svc := NewEmberPollService(&cfg)
+	first := config.EmberConfig{
+		MetricsPrefix: "first_",
+		GPIOs:         []string{"1"},
+		Conn:          &fakeEmberConn{data: []byte(`{"1":{"description":"state","value":true}}`)},
+	}
+	second := config.EmberConfig{
+		MetricsPrefix: "second_",
+		GPIOs:         []string{"1", "2"},
+		Conn:          &fakeEmberConn{data: []byte(`{"2":{"description":"other","value":false}}`)},
+	}
+
+	svc.pollEmberProvider("first", first)
+	svc.pollEmberProvider("second", second)
+
+	metrics := make(chan prometheus.Metric, 3)
+	cfg.Metrics.GpioStateGauge.Collect(metrics)
+	close(metrics)
+	var names []string
+	for metric := range metrics {
+		var pb dto.Metric
+		assert.NoError(t, metric.Write(&pb))
+		for _, label := range pb.Label {
+			if label.GetName() == "gpioName" {
+				names = append(names, label.GetValue())
+			}
+		}
+	}
+
+	assert.ElementsMatch(t, []string{"first_state", "second_other"}, names)
+}
+
 func TestPollRunReconnectsOnReadError(t *testing.T) {
 	cfg := config.AppConfig{}
 	cfg.RunTime.EmberGpios = make(map[string]config.EmberConfig)

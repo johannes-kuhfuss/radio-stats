@@ -151,7 +151,6 @@ func (s DefaultEmberPollService) PollContext(ctx context.Context) {
 }
 
 func (s DefaultEmberPollService) PollRun() {
-	var emberData map[string]map[string]any
 	s.Cfg.RunTime.RLock()
 	emberGpios := make(map[string]config.EmberConfig, len(s.Cfg.RunTime.EmberGpios))
 	for host, clientConfig := range s.Cfg.RunTime.EmberGpios {
@@ -159,22 +158,27 @@ func (s DefaultEmberPollService) PollRun() {
 	}
 	s.Cfg.RunTime.RUnlock()
 	for host, clientConfig := range emberGpios {
-		if clientConfig.Conn == nil {
-			logger.Error(fmt.Sprintf("Could not get data from Ember provider. Host: %v, Port: %v", host, clientConfig.Port), fmt.Errorf("no Ember connection"))
-			continue
-		}
-		data, err := clientConfig.Conn.GetByType("node", clientConfig.EntryPath)
-		if err != nil {
-			reconnectEmber(host, clientConfig.Conn)
-			logger.Error(fmt.Sprintf("Could not get data from Ember provider. Host: %v, Port: %v", host, clientConfig.Port), err)
-			continue
-		}
-		if err := json.Unmarshal(data, &emberData); err != nil {
-			logger.Error(fmt.Sprintf("Could not marshall data from Ember provider. Host: %v", host), err)
-			continue
-		}
-		s.updateMetrics(clientConfig, emberData)
+		s.pollEmberProvider(host, clientConfig)
 	}
+}
+
+func (s DefaultEmberPollService) pollEmberProvider(host string, clientConfig config.EmberConfig) {
+	if clientConfig.Conn == nil {
+		logger.Error(fmt.Sprintf("Could not get data from Ember provider. Host: %v, Port: %v", host, clientConfig.Port), fmt.Errorf("no Ember connection"))
+		return
+	}
+	data, err := clientConfig.Conn.GetByType("node", clientConfig.EntryPath)
+	if err != nil {
+		reconnectEmber(host, clientConfig.Conn)
+		logger.Error(fmt.Sprintf("Could not get data from Ember provider. Host: %v, Port: %v", host, clientConfig.Port), err)
+		return
+	}
+	var emberData map[string]map[string]any
+	if err := json.Unmarshal(data, &emberData); err != nil {
+		logger.Error(fmt.Sprintf("Could not marshall data from Ember provider. Host: %v", host), err)
+		return
+	}
+	s.updateMetrics(clientConfig, emberData)
 }
 
 func (s DefaultEmberPollService) updateMetrics(clientConfig config.EmberConfig, emberData map[string]map[string]any) {
