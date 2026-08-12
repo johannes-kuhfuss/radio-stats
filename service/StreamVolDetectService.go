@@ -34,14 +34,20 @@ type StreamVolDetector interface {
 type FfmpegRunner func(ctx context.Context, name string, args []string, onLine func(string)) error
 
 type DefaultStreamVolDetectService struct {
-	Cfg          *config.AppConfig
-	FfmpegRunner FfmpegRunner
+	Cfg             *config.AppConfig
+	FfmpegRunner    FfmpegRunner
+	watchdogTimeout time.Duration
 }
 
 func NewStreamVolDetectService(cfg *config.AppConfig) DefaultStreamVolDetectService {
+	watchdogTimeout := time.Duration(cfg.StreamVolDetect.FreshnessTimeoutSec) * time.Second
+	if watchdogTimeout <= 0 {
+		watchdogTimeout = 15 * time.Second
+	}
 	return DefaultStreamVolDetectService{
-		Cfg:          cfg,
-		FfmpegRunner: runFfmpegCommand,
+		Cfg:             cfg,
+		FfmpegRunner:    runFfmpegCommand,
+		watchdogTimeout: watchdogTimeout,
 	}
 }
 
@@ -123,10 +129,8 @@ func (s DefaultStreamVolDetectService) listenStream(ctx context.Context, streamU
 		}
 		attempt++
 		s.Cfg.Metrics.StreamVolDetectorUp.WithLabelValues(streamURL).Set(0)
-		err := s.FfmpegRunner(ctx, s.Cfg.StreamVolDetect.FfmpegExe, ffmpegArgs(streamURL), func(line string) {
-			if monitor.handleLine(line) {
-				backoff = time.Second
-			}
+		err, stale := s.runFfmpegWithWatchdog(ctx, streamURL, monitor, func() {
+			backoff = time.Second
 		})
 		s.Cfg.Metrics.StreamVolDetectorUp.WithLabelValues(streamURL).Set(0)
 		if ctx.Err() != nil {
@@ -134,7 +138,11 @@ func (s DefaultStreamVolDetectService) listenStream(ctx context.Context, streamU
 		}
 
 		monitor.reset()
-		logger.Error(fmt.Sprintf("ffmpeg exited for URL %v: ", streamURL), err)
+		if stale {
+			logger.Errorf("Restarting ffmpeg for URL %v after receiving no valid audio measurements for %v", streamURL, s.watchdogTimeout)
+		} else {
+			logger.Error(fmt.Sprintf("ffmpeg exited for URL %v: ", streamURL), err)
+		}
 		select {
 		case <-ctx.Done():
 			return
@@ -145,6 +153,67 @@ func (s DefaultStreamVolDetectService) listenStream(ctx context.Context, streamU
 		} else {
 			backoff = 30 * time.Second
 		}
+	}
+}
+
+// runFfmpegWithWatchdog cancels a single ffmpeg run when it remains alive but
+// stops producing valid audio measurements. CommandContext then terminates the
+// child process and listenStream starts a fresh one using its existing retry
+// loop.
+func (s DefaultStreamVolDetectService) runFfmpegWithWatchdog(
+	ctx context.Context,
+	streamURL string,
+	monitor *streamAudioMonitor,
+	onMeasurement func(),
+) (error, bool) {
+	runCtx, cancelRun := context.WithCancel(ctx)
+	defer cancelRun()
+
+	measurements := make(chan struct{}, 1)
+	watchdogDone := make(chan struct{})
+	stale := make(chan struct{}, 1)
+	go func() {
+		defer close(watchdogDone)
+		timer := time.NewTimer(s.watchdogTimeout)
+		defer timer.Stop()
+		for {
+			select {
+			case <-runCtx.Done():
+				return
+			case <-measurements:
+				if !timer.Stop() {
+					select {
+					case <-timer.C:
+					default:
+					}
+				}
+				timer.Reset(s.watchdogTimeout)
+			case <-timer.C:
+				s.Cfg.Metrics.StreamVolDetectorUp.WithLabelValues(streamURL).Set(0)
+				stale <- struct{}{}
+				cancelRun()
+				return
+			}
+		}
+	}()
+
+	err := s.FfmpegRunner(runCtx, s.Cfg.StreamVolDetect.FfmpegExe, ffmpegArgs(streamURL), func(line string) {
+		if !monitor.handleLine(line) {
+			return
+		}
+		onMeasurement()
+		select {
+		case measurements <- struct{}{}:
+		default:
+		}
+	})
+	cancelRun()
+	<-watchdogDone
+	select {
+	case <-stale:
+		return err, true
+	default:
+		return err, false
 	}
 }
 

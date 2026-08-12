@@ -105,6 +105,41 @@ func TestListenStreamPublishesContinuousMeasurements(t *testing.T) {
 	assert.EqualValues(t, 1, service.Cfg.RunTime.StreamVolDetectCount)
 }
 
+func TestFfmpegWatchdogCancelsStalledRunner(t *testing.T) {
+	service := newVolumeTestService()
+	service.watchdogTimeout = 30 * time.Millisecond
+	monitor := newStreamAudioMonitor(service, streamingURL)
+	service.FfmpegRunner = func(ctx context.Context, _ string, _ []string, _ func(string)) error {
+		<-ctx.Done()
+		return ctx.Err()
+	}
+
+	err, stale := service.runFfmpegWithWatchdog(context.Background(), streamingURL, monitor, func() {})
+
+	assert.ErrorIs(t, err, context.Canceled)
+	assert.True(t, stale)
+	assert.Equal(t, 0.0, testutil.ToFloat64(service.Cfg.Metrics.StreamVolDetectorUp.WithLabelValues(streamingURL)))
+}
+
+func TestFfmpegWatchdogResetsOnMeasurements(t *testing.T) {
+	service := newVolumeTestService()
+	service.watchdogTimeout = 50 * time.Millisecond
+	monitor := newStreamAudioMonitor(service, streamingURL)
+	service.FfmpegRunner = func(ctx context.Context, _ string, _ []string, onLine func(string)) error {
+		for range 3 {
+			onLine("lavfi.astats.Overall.RMS_level=-12")
+			time.Sleep(30 * time.Millisecond)
+		}
+		return nil
+	}
+
+	err, stale := service.runFfmpegWithWatchdog(context.Background(), streamingURL, monitor, func() {})
+
+	assert.NoError(t, err)
+	assert.False(t, stale)
+	assert.Equal(t, 1.0, testutil.ToFloat64(service.Cfg.Metrics.StreamVolDetectorUp.WithLabelValues(streamingURL)))
+}
+
 func TestVolumeWindowHonorsInterval(t *testing.T) {
 	window := newVolumeWindow(2, 3)
 

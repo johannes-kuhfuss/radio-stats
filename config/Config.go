@@ -119,12 +119,13 @@ type AppConfig struct {
 		ExpectedServerName string `envconfig:"EXPECTED_SERVER_NAME" default:"ignore"` //was: "coloRadio"
 	}
 	StreamVolDetect struct {
-		Urls               []string `envconfig:"STREAM_VOLDETECT_URLS"`
-		IntervalSec        int      `envconfig:"STREAM_VOLDETECT_INTERVAL_SEC" default:"5"`
-		Duration           int      `envconfig:"STREAM_VOLDETECT_DURATION" default:"4"`
-		FfmpegExe          string   `envconfig:"STREAM_VOLDETECT_FFMPEG" default:"/usr/bin/ffmpeg"`
-		SilenceThresholdDB float64  `envconfig:"STREAM_VOLDETECT_SILENCE_THRESHOLD_DB" default:"-60"`
-		SilenceDurationSec int      `envconfig:"STREAM_VOLDETECT_SILENCE_DURATION_SEC" default:"10"`
+		Urls                []string `envconfig:"STREAM_VOLDETECT_URLS"`
+		IntervalSec         int      `envconfig:"STREAM_VOLDETECT_INTERVAL_SEC" default:"5"`
+		Duration            int      `envconfig:"STREAM_VOLDETECT_DURATION" default:"4"`
+		FfmpegExe           string   `envconfig:"STREAM_VOLDETECT_FFMPEG" default:"/usr/bin/ffmpeg"`
+		FreshnessTimeoutSec int      `envconfig:"STREAM_VOLDETECT_FRESHNESS_TIMEOUT_SEC" default:"15"`
+		SilenceThresholdDB  float64  `envconfig:"STREAM_VOLDETECT_SILENCE_THRESHOLD_DB" default:"-60"`
+		SilenceDurationSec  int      `envconfig:"STREAM_VOLDETECT_SILENCE_DURATION_SEC" default:"10"`
 	}
 	Gpio struct {
 		Host        string           `envconfig:"GPIO_HOST"`
