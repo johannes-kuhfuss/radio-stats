@@ -18,10 +18,12 @@ import (
 )
 
 const (
-	ffmpegSampleRate = 48000
-	rmsMetadataKey   = "lavfi.astats.Overall.RMS_level"
-	peakMetadataKey  = "lavfi.astats.Overall.Peak_level"
-	lufsMetadataKey  = "lavfi.r128.S"
+	ffmpegSampleRate       = 48000
+	maxFfmpegDiagnostics   = 4
+	maxFfmpegDiagnosticLen = 512
+	rmsMetadataKey         = "lavfi.astats.Overall.RMS_level"
+	peakMetadataKey        = "lavfi.astats.Overall.Peak_level"
+	lufsMetadataKey        = "lavfi.r128.S"
 )
 
 type StreamVolDetector interface {
@@ -129,7 +131,7 @@ func (s DefaultStreamVolDetectService) listenStream(ctx context.Context, streamU
 		}
 		attempt++
 		s.Cfg.Metrics.StreamVolDetectorUp.WithLabelValues(streamURL).Set(0)
-		err, stale := s.runFfmpegWithWatchdog(ctx, streamURL, monitor, func() {
+		err, stale, diagnostics := s.runFfmpegWithWatchdog(ctx, streamURL, monitor, func() {
 			backoff = time.Second
 		})
 		s.Cfg.Metrics.StreamVolDetectorUp.WithLabelValues(streamURL).Set(0)
@@ -137,11 +139,20 @@ func (s DefaultStreamVolDetectService) listenStream(ctx context.Context, streamU
 			return
 		}
 
+		monitor.invalidateMeasurements()
 		monitor.reset()
 		if stale {
-			logger.Errorf("Restarting ffmpeg for URL %v after receiving no valid audio measurements for %v", streamURL, s.watchdogTimeout)
+			if diagnostics == "" {
+				logger.Errorf("Restarting ffmpeg for URL %v after receiving no valid audio measurements for %v", streamURL, s.watchdogTimeout)
+			} else {
+				logger.Errorf("Restarting ffmpeg for URL %v after receiving no valid audio measurements for %v. ffmpeg: %v", streamURL, s.watchdogTimeout, diagnostics)
+			}
 		} else {
-			logger.Error(fmt.Sprintf("ffmpeg exited for URL %v: ", streamURL), err)
+			if diagnostics == "" {
+				logger.Errorf("ffmpeg exited for URL %v: %v", streamURL, err)
+			} else {
+				logger.Errorf("ffmpeg exited for URL %v: %v. ffmpeg: %v", streamURL, err, diagnostics)
+			}
 		}
 		select {
 		case <-ctx.Done():
@@ -165,10 +176,11 @@ func (s DefaultStreamVolDetectService) runFfmpegWithWatchdog(
 	streamURL string,
 	monitor *streamAudioMonitor,
 	onMeasurement func(),
-) (error, bool) {
+) (error, bool, string) {
 	runCtx, cancelRun := context.WithCancel(ctx)
 	defer cancelRun()
 
+	diagnostics := newFfmpegDiagnostics()
 	measurements := make(chan struct{}, 1)
 	watchdogDone := make(chan struct{})
 	stale := make(chan struct{}, 1)
@@ -199,6 +211,7 @@ func (s DefaultStreamVolDetectService) runFfmpegWithWatchdog(
 
 	err := s.FfmpegRunner(runCtx, s.Cfg.StreamVolDetect.FfmpegExe, ffmpegArgs(streamURL), func(line string) {
 		if !monitor.handleLine(line) {
+			diagnostics.observe(line)
 			return
 		}
 		onMeasurement()
@@ -211,10 +224,58 @@ func (s DefaultStreamVolDetectService) runFfmpegWithWatchdog(
 	<-watchdogDone
 	select {
 	case <-stale:
-		return err, true
+		return err, true, diagnostics.String()
 	default:
-		return err, false
+		return err, false, diagnostics.String()
 	}
+}
+
+type ffmpegDiagnostics struct {
+	lines    []string
+	fallback string
+}
+
+func newFfmpegDiagnostics() *ffmpegDiagnostics {
+	return &ffmpegDiagnostics{lines: make([]string, 0, maxFfmpegDiagnostics)}
+}
+
+func (d *ffmpegDiagnostics) observe(line string) {
+	line = strings.TrimSpace(line)
+	if line == "" || strings.Contains(line, "lavfi.") {
+		return
+	}
+	if len(line) > maxFfmpegDiagnosticLen {
+		line = line[:maxFfmpegDiagnosticLen]
+	}
+	d.fallback = line
+	if !isFfmpegErrorLine(line) {
+		return
+	}
+	if len(d.lines) == maxFfmpegDiagnostics {
+		copy(d.lines, d.lines[1:])
+		d.lines = d.lines[:maxFfmpegDiagnostics-1]
+	}
+	d.lines = append(d.lines, line)
+}
+
+func (d *ffmpegDiagnostics) String() string {
+	if len(d.lines) > 0 {
+		return strings.Join(d.lines, " | ")
+	}
+	return d.fallback
+}
+
+func isFfmpegErrorLine(line string) bool {
+	lower := strings.ToLower(line)
+	for _, marker := range []string{
+		"error", "failed", "invalid", "not found", "timed out",
+		"refused", "unreachable", "server returned", "i/o error",
+	} {
+		if strings.Contains(lower, marker) {
+			return true
+		}
+	}
+	return false
 }
 
 func ffmpegArgs(streamURL string) []string {
@@ -312,6 +373,16 @@ func (m *streamAudioMonitor) reset() {
 	m.service.Cfg.Metrics.StreamVolDetectorUp.WithLabelValues(m.url).Set(0)
 	m.service.Cfg.Metrics.StreamAudioSilent.WithLabelValues(m.url).Set(0)
 	m.service.Cfg.Metrics.StreamSilenceDuration.WithLabelValues(m.url).Set(0)
+}
+
+func (m *streamAudioMonitor) invalidateMeasurements() {
+	unknown := math.NaN()
+	m.service.Cfg.RunTime.StreamVolumes.Lock()
+	m.service.Cfg.RunTime.StreamVolumes.Vols[m.url] = unknown
+	m.service.Cfg.RunTime.StreamVolumes.Unlock()
+	m.service.Cfg.Metrics.StreamVolume.WithLabelValues(m.url).Set(unknown)
+	m.service.Cfg.Metrics.StreamAudioPeak.WithLabelValues(m.url).Set(unknown)
+	m.service.Cfg.Metrics.StreamAudioLoudness.WithLabelValues(m.url).Set(unknown)
 }
 
 func boolFloat(value bool) float64 {

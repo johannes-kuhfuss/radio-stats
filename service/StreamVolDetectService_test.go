@@ -114,10 +114,11 @@ func TestFfmpegWatchdogCancelsStalledRunner(t *testing.T) {
 		return ctx.Err()
 	}
 
-	err, stale := service.runFfmpegWithWatchdog(context.Background(), streamingURL, monitor, func() {})
+	err, stale, diagnostics := service.runFfmpegWithWatchdog(context.Background(), streamingURL, monitor, func() {})
 
 	assert.ErrorIs(t, err, context.Canceled)
 	assert.True(t, stale)
+	assert.Empty(t, diagnostics)
 	assert.Equal(t, 0.0, testutil.ToFloat64(service.Cfg.Metrics.StreamVolDetectorUp.WithLabelValues(streamingURL)))
 }
 
@@ -133,10 +134,11 @@ func TestFfmpegWatchdogResetsOnMeasurements(t *testing.T) {
 		return nil
 	}
 
-	err, stale := service.runFfmpegWithWatchdog(context.Background(), streamingURL, monitor, func() {})
+	err, stale, diagnostics := service.runFfmpegWithWatchdog(context.Background(), streamingURL, monitor, func() {})
 
 	assert.NoError(t, err)
 	assert.False(t, stale)
+	assert.Empty(t, diagnostics)
 	assert.Equal(t, 1.0, testutil.ToFloat64(service.Cfg.Metrics.StreamVolDetectorUp.WithLabelValues(streamingURL)))
 }
 
@@ -218,6 +220,44 @@ func TestAudioMonitorResetMarksDetectorDown(t *testing.T) {
 	assert.Equal(t, 0.0, testutil.ToFloat64(service.Cfg.Metrics.StreamVolDetectorUp.WithLabelValues(streamingURL)))
 	assert.Equal(t, 0.0, testutil.ToFloat64(service.Cfg.Metrics.StreamSilenceDuration.WithLabelValues(streamingURL)))
 	assert.Equal(t, 0.0, testutil.ToFloat64(service.Cfg.Metrics.StreamAudioSilent.WithLabelValues(streamingURL)))
+}
+
+func TestAudioMonitorInvalidatesMeasurements(t *testing.T) {
+	service := newVolumeTestService()
+	monitor := newStreamAudioMonitor(service, streamingURL)
+	service.updateVolMetric(-12, streamingURL)
+	monitor.handleLine("lavfi.astats.Overall.Peak_level=-0.7")
+	monitor.handleLine("lavfi.r128.S=-18.2")
+
+	monitor.invalidateMeasurements()
+
+	assert.True(t, math.IsNaN(testutil.ToFloat64(service.Cfg.Metrics.StreamVolume.WithLabelValues(streamingURL))))
+	assert.True(t, math.IsNaN(testutil.ToFloat64(service.Cfg.Metrics.StreamAudioPeak.WithLabelValues(streamingURL))))
+	assert.True(t, math.IsNaN(testutil.ToFloat64(service.Cfg.Metrics.StreamAudioLoudness.WithLabelValues(streamingURL))))
+	service.Cfg.RunTime.StreamVolumes.Lock()
+	assert.True(t, math.IsNaN(service.Cfg.RunTime.StreamVolumes.Vols[streamingURL]))
+	service.Cfg.RunTime.StreamVolumes.Unlock()
+}
+
+func TestFfmpegDiagnosticsKeepsRecentErrorLines(t *testing.T) {
+	diagnostics := newFfmpegDiagnostics()
+	diagnostics.observe("Input #0, mp3, from 'stream':")
+	diagnostics.observe("lavfi.astats.Overall.RMS_level=-12")
+	diagnostics.observe("[http @ 0x1] HTTP error 404 Not Found")
+	diagnostics.observe("Error opening input: Server returned 404 Not Found")
+
+	assert.Equal(t,
+		"[http @ 0x1] HTTP error 404 Not Found | Error opening input: Server returned 404 Not Found",
+		diagnostics.String(),
+	)
+}
+
+func TestFfmpegDiagnosticsFallsBackToLastNonMeasurementLine(t *testing.T) {
+	diagnostics := newFfmpegDiagnostics()
+	diagnostics.observe("first informational line")
+	diagnostics.observe("last informational line")
+
+	assert.Equal(t, "last informational line", diagnostics.String())
 }
 
 func TestFfmpegArgsUseContinuousAstats(t *testing.T) {
