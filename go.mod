@@ -1,33 +1,25 @@
 module github.com/johannes-kuhfuss/radio-stats
 
-go 1.26.3
+go 1.27
 
 require (
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gin-gonic/gin v1.12.0
 	github.com/goccy/go-json v0.10.6
+	github.com/johannes-kuhfuss/emberplus v1.1.1
 	github.com/johannes-kuhfuss/services_utils v1.1.2
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.24.1
+	github.com/prometheus/client_model v0.6.2
 	github.com/stretchr/testify v1.12.1
-	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.28.0 // indirect
 	golang.org/x/crypto v0.55.0
 	golang.org/x/net v0.58.0
-	gopkg.in/yaml.v3 v3.0.1 // indirect
-)
-
-require (
-	github.com/johannes-kuhfuss/emberplus v1.1.1
-	github.com/prometheus/client_model v0.6.2
 )
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/gopkg v0.1.4 // indirect
-	github.com/bytedance/sonic v1.15.2 // indirect
+	github.com/bytedance/sonic v1.15.3 // indirect
 	github.com/bytedance/sonic/loader v0.5.2 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.7 // indirect
@@ -52,11 +44,13 @@ require (
 	github.com/quic-go/quic-go v0.61.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.2 // indirect
-	go.mongodb.org/mongo-driver/v2 v2.8.0 // indirect
+	go.mongodb.org/mongo-driver/v2 v2.8.2 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
+	go.uber.org/zap v1.28.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/arch v0.30.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 )
