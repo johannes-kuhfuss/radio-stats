@@ -178,6 +178,11 @@ func (s DefaultEmberPollService) pollEmberProvider(host string, clientConfig con
 		logger.Error(fmt.Sprintf("Could not marshall data from Ember provider. Host: %v", host), err)
 		return
 	}
+	logger.Infof(
+		"Ember poll %s: raw response=%s",
+		time.Now().Format(time.RFC3339Nano),
+		string(data),
+	)
 	s.updateMetrics(clientConfig, emberData)
 }
 
