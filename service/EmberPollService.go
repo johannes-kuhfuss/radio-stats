@@ -106,7 +106,7 @@ func (s DefaultEmberPollService) PollContext(ctx context.Context) {
 
 	var workers sync.WaitGroup
 	for host, clientConfig := range providers {
-		logger.Infof("adding eEmber provider %v", host)
+		logger.Infof("adding Ember provider %v", host)
 		workers.Go(func() {
 			s.serveEmberProvider(ctx, host, clientConfig)
 		})
