@@ -5,7 +5,7 @@ go 1.27
 require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/goccy/go-json v0.10.6
-	github.com/johannes-kuhfuss/emberplus v1.1.1
+	github.com/johannes-kuhfuss/emberplus v1.1.2
 	github.com/johannes-kuhfuss/services_utils v1.1.2
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -39,7 +39,7 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/prometheus/common v0.70.1 // indirect
-	github.com/prometheus/procfs v0.21.1 // indirect
+	github.com/prometheus/procfs v0.22.0 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.61.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
