@@ -182,9 +182,10 @@ func (s DefaultEmberPollService) applyElement(host string, clientConfig config.E
 }
 
 func configuredGPIO(clientConfig config.EmberConfig, path string) (string, bool) {
-	path = strings.TrimPrefix(path, clientConfig.EntryPath+".")
+	relativePath := strings.TrimPrefix(path, clientConfig.EntryPath+".")
 	for _, gpio := range clientConfig.GPIOs {
-		if path == gpio {
+		relativeGPIO := strings.TrimPrefix(gpio, clientConfig.EntryPath+".")
+		if relativePath == relativeGPIO {
 			return gpio, true
 		}
 	}

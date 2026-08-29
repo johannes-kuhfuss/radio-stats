@@ -168,6 +168,20 @@ func TestPartialUpdateRetainsInitialDescription(t *testing.T) {
 	assert.EqualValues(t, 1, gaugeValue(cfg.Metrics.GpioStateGauge.WithLabelValues("ember_on_air")))
 }
 
+func TestFullyQualifiedConfiguredGPIOUpdatesMetric(t *testing.T) {
+	cfg := newEmberTestConfig()
+	svc := NewEmberPollService(cfg)
+	clientConfig := config.EmberConfig{
+		EntryPath: "0.2", MetricsPrefix: "ember_", GPIOs: []string{"0.2.0"},
+	}
+
+	svc.applyElements("host", clientConfig, ember.ElementCollection{
+		{Path: "0.2.0"}: {Path: "0.2.0", Description: "on_air", HasValue: true, Value: true},
+	})
+
+	assert.EqualValues(t, 1, gaugeValue(cfg.Metrics.GpioStateGauge.WithLabelValues("ember_on_air")))
+}
+
 func TestUnconfiguredAndNonBooleanElementsAreIgnored(t *testing.T) {
 	cfg := newEmberTestConfig()
 	svc := NewEmberPollService(cfg)
