@@ -30,6 +30,7 @@ GPIO_PASSWORD=reader
 GPIO_IN_CONFIG=1={"name":"Studio Alarm","invert":true}
 GPIO_OUT_CONFIG=Studio=1
 EMBER_IN_CONFIG=host={"port":9000,"entrypath":"1.2.3","metricsprefix":"ember_","gpios":["1","2"]}
+EMBER_POLL_INTERVAL_SEC=1
 ADMIN_USER_NAME=admin
 ADMIN_PASSWORD_HASH=<bcrypt hash>
 ```
@@ -59,6 +60,8 @@ go test ./... -count=1
 ## Notes
 
 The long-running pollers support context cancellation internally. Tests use injected HTTP clients, ffmpeg runners, and Ember connections so they do not depend on live devices or streams.
+
+Each Ember connection performs one directory discovery and then receives partial updates continuously. Prometheus reads the merged GPIO state; it does not trigger repeated directory requests. `EMBER_POLL_INTERVAL_SEC` is retained for compatibility and now controls the delay before reconnecting after an Ember connection or read-pump failure.
 
 Stream volume detection exports RMS volume, one-second sample peak, EBU R128 short-term loudness, silence state and duration, detector health, restart count, and the last successful measurement timestamp. If ffmpeg produces no valid measurements for `STREAM_VOLDETECT_FRESHNESS_TIMEOUT_SEC`, its process is terminated and restarted. Unexpected exits include recent ffmpeg diagnostics in the application log, and the RMS, peak, and loudness gauges are set to `NaN` until fresh measurements arrive. Silence is declared only after the audio remains below `STREAM_VOLDETECT_SILENCE_THRESHOLD_DB` for `STREAM_VOLDETECT_SILENCE_DURATION_SEC` seconds.
 

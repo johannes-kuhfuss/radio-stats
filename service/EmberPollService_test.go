@@ -1,7 +1,9 @@
 package service
 
 import (
+	"context"
 	"errors"
+	"sync"
 	"testing"
 
 	"github.com/johannes-kuhfuss/emberplus/ember"
@@ -9,32 +11,75 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type fakeEmberConn struct {
-	data            []byte
+	mu              sync.Mutex
+	elements        ember.ElementCollection
 	getErr          error
 	connectErr      error
+	serveErr        error
+	notifications   []ember.RootMessage
 	connectCount    int
 	disconnectCount int
+	getCount        int
+	serveCount      int
 	requestedType   ember.ElementType
 	requestedPath   string
 }
 
 func (f *fakeEmberConn) Connect() error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.connectCount++
 	return f.connectErr
 }
 
 func (f *fakeEmberConn) Disconnect() error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.disconnectCount++
 	return nil
 }
 
-func (f *fakeEmberConn) GetByType(elementType ember.ElementType, path string) ([]byte, error) {
+func (f *fakeEmberConn) GetElementCollectionGlow250(elementType ember.ElementType, path string) (ember.ElementCollection, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.getCount++
 	f.requestedType = elementType
 	f.requestedPath = path
-	return f.data, f.getErr
+	return f.elements, f.getErr
+}
+
+func (f *fakeEmberConn) Serve(ctx context.Context, handler func(ember.RootMessage) error) error {
+	f.mu.Lock()
+	f.serveCount++
+	notifications := append([]ember.RootMessage(nil), f.notifications...)
+	serveErr := f.serveErr
+	f.mu.Unlock()
+	for _, notification := range notifications {
+		if err := handler(notification); err != nil {
+			return err
+		}
+	}
+	if serveErr != nil {
+		return serveErr
+	}
+	<-ctx.Done()
+	return ctx.Err()
+}
+
+func newEmberTestConfig() *config.AppConfig {
+	cfg := &config.AppConfig{}
+	cfg.RunTime.EmberGpios = make(map[string]config.EmberConfig)
+	cfg.Metrics.GpioStateGauge = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "Coloradio",
+		Subsystem: "GPIOs",
+		Name:      "status",
+		Help:      "Status of GPIO 1 (active) or 0 (inactive)",
+	}, []string{"gpioName"})
+	return cfg
 }
 
 func TestNewEmberPollServiceSetsConfig(t *testing.T) {
@@ -43,6 +88,7 @@ func TestNewEmberPollServiceSetsConfig(t *testing.T) {
 	svc := NewEmberPollService(&cfg)
 
 	assert.Same(t, &cfg, svc.Cfg)
+	assert.NotNil(t, svc.state)
 }
 
 func TestEmberPollNoConfigSetsRunFalse(t *testing.T) {
@@ -55,164 +101,91 @@ func TestEmberPollNoConfigSetsRunFalse(t *testing.T) {
 	assert.False(t, cfg.ShouldRunEmberPoll())
 }
 
-func TestEmberUpdateMetricsUpdatesConfiguredGpios(t *testing.T) {
-	cfg := config.AppConfig{}
-	cfg.Metrics.GpioStateGauge = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "Coloradio",
-		Subsystem: "GPIOs",
-		Name:      "status",
-		Help:      "Status of GPIO 1 (active) or 0 (inactive)",
-	}, []string{"gpioName"})
-	svc := NewEmberPollService(&cfg)
-	clientConfig := config.EmberConfig{
-		MetricsPrefix: "ember_",
-		GPIOs:         []string{"1", "2", "3"},
-	}
-	emberData := map[string]map[string]any{
-		"1": {"description": "on_air", "value": true},
-		"2": {"description": "alarm", "value": false},
-		"3": {"description": 123, "value": true},
-		"4": {"description": "ignored", "value": true},
-	}
-
-	svc.updateMetrics(clientConfig, emberData)
-
-	assert.EqualValues(t, 1, gaugeValue(cfg.Metrics.GpioStateGauge.WithLabelValues("ember_on_air")))
-	assert.EqualValues(t, 0, gaugeValue(cfg.Metrics.GpioStateGauge.WithLabelValues("ember_alarm")))
-}
-
-func TestInitEmberConnUsesFactoryAndStoresConnection(t *testing.T) {
-	cfg := config.AppConfig{}
-	cfg.RunTime.EmberGpios = make(map[string]config.EmberConfig)
+func TestInitEmberConnUsesFactoryAndStoresUnconnectedClient(t *testing.T) {
+	cfg := newEmberTestConfig()
 	cfg.Ember.InConfig = config.EmberConfigDecoder{
 		"host": {Port: 9000, EntryPath: "1.2.3", MetricsPrefix: "ember_", GPIOs: []string{"1"}},
 	}
 	fakeConn := &fakeEmberConn{}
-	svc := NewEmberPollService(&cfg)
+	svc := NewEmberPollService(cfg)
 	svc.ClientFactory = func(host string, port int) (config.EmberConnection, error) {
-		assert.EqualValues(t, "host", host)
-		assert.EqualValues(t, 9000, port)
+		assert.Equal(t, "host", host)
+		assert.Equal(t, 9000, port)
 		return fakeConn, nil
 	}
 
 	svc.InitEmberConn()
 
-	assert.EqualValues(t, 1, len(cfg.RunTime.EmberGpios))
+	require.Len(t, cfg.RunTime.EmberGpios, 1)
 	assert.Same(t, fakeConn, cfg.RunTime.EmberGpios["host"].Conn)
-	assert.EqualValues(t, 1, fakeConn.connectCount)
+	assert.Zero(t, fakeConn.connectCount)
 }
 
-func TestInitEmberConnRetainsConnectionAfterInitialConnectFailure(t *testing.T) {
-	cfg := config.AppConfig{}
-	cfg.RunTime.EmberGpios = make(map[string]config.EmberConfig)
-	cfg.Ember.InConfig = config.EmberConfigDecoder{
-		"host": {Port: 9000, EntryPath: "1.2.3"},
+func TestRunEmberSessionDiscoversOnceThenAppliesNotifications(t *testing.T) {
+	cfg := newEmberTestConfig()
+	initial := ember.NewElementCollection()
+	initial[ember.ElementKey{Path: "1"}] = &ember.Element{
+		Path: "1", Description: "on_air", HasValue: true, Value: false,
 	}
-	fakeConn := &fakeEmberConn{connectErr: errors.New("no route to host")}
-	svc := NewEmberPollService(&cfg)
-	svc.ClientFactory = func(string, int) (config.EmberConnection, error) {
-		return fakeConn, nil
+	update := ember.NewElementCollection()
+	update[ember.ElementKey{Path: "1.2.3.1"}] = &ember.Element{
+		Path: "1.2.3.1", HasValue: true, Value: true,
 	}
-
-	svc.InitEmberConn()
-
-	assert.Same(t, fakeConn, cfg.RunTime.EmberGpios["host"].Conn)
-	assert.EqualValues(t, 1, fakeConn.connectCount)
-
-	// Once the network is available, a failed poll must be able to reconnect
-	// the client retained during initialization.
-	fakeConn.connectErr = nil
-	fakeConn.getErr = errors.New("not connected")
-	svc.PollRun()
-
-	assert.EqualValues(t, 1, fakeConn.disconnectCount)
-	assert.EqualValues(t, 2, fakeConn.connectCount)
-}
-
-func TestPollRunReadsEmberData(t *testing.T) {
-	cfg := config.AppConfig{}
-	cfg.RunTime.EmberGpios = make(map[string]config.EmberConfig)
-	cfg.Metrics.GpioStateGauge = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "Coloradio",
-		Subsystem: "GPIOs",
-		Name:      "status",
-		Help:      "Status of GPIO 1 (active) or 0 (inactive)",
-	}, []string{"gpioName"})
-	fakeConn := &fakeEmberConn{data: []byte(`{"1":{"description":"on_air","value":true}}`)}
-	cfg.RunTime.EmberGpios["host"] = config.EmberConfig{
-		EntryPath:     "1.2.3",
-		MetricsPrefix: "ember_",
-		GPIOs:         []string{"1"},
-		Conn:          fakeConn,
+	serveStopped := errors.New("serve stopped")
+	fakeConn := &fakeEmberConn{
+		elements:      initial,
+		notifications: []ember.RootMessage{{Elements: update}},
+		serveErr:      serveStopped,
 	}
-	svc := NewEmberPollService(&cfg)
+	clientConfig := config.EmberConfig{
+		EntryPath: "1.2.3", MetricsPrefix: "ember_", GPIOs: []string{"1"}, Conn: fakeConn,
+	}
+	svc := NewEmberPollService(cfg)
 
-	svc.PollRun()
+	err := svc.runEmberSession(context.Background(), "host", clientConfig)
 
-	assert.EqualValues(t, ember.ElementType("node"), fakeConn.requestedType)
-	assert.EqualValues(t, "1.2.3", fakeConn.requestedPath)
+	assert.ErrorIs(t, err, serveStopped)
+	assert.Equal(t, 1, fakeConn.connectCount)
+	assert.Equal(t, 1, fakeConn.getCount)
+	assert.Equal(t, 1, fakeConn.serveCount)
+	assert.Equal(t, ember.NodeElement, fakeConn.requestedType)
+	assert.Equal(t, "1.2.3", fakeConn.requestedPath)
 	assert.EqualValues(t, 1, gaugeValue(cfg.Metrics.GpioStateGauge.WithLabelValues("ember_on_air")))
 }
 
-func TestPollEmberProviderDoesNotReuseAnotherProvidersData(t *testing.T) {
-	cfg := config.AppConfig{}
-	cfg.Metrics.GpioStateGauge = *prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "Coloradio",
-		Subsystem: "GPIOs",
-		Name:      "status",
-		Help:      "Status of GPIO 1 (active) or 0 (inactive)",
-	}, []string{"gpioName"})
-	svc := NewEmberPollService(&cfg)
-	first := config.EmberConfig{
-		MetricsPrefix: "first_",
-		GPIOs:         []string{"1"},
-		Conn:          &fakeEmberConn{data: []byte(`{"1":{"description":"state","value":true}}`)},
-	}
-	second := config.EmberConfig{
-		MetricsPrefix: "second_",
-		GPIOs:         []string{"1", "2"},
-		Conn:          &fakeEmberConn{data: []byte(`{"2":{"description":"other","value":false}}`)},
-	}
+func TestPartialUpdateRetainsInitialDescription(t *testing.T) {
+	cfg := newEmberTestConfig()
+	svc := NewEmberPollService(cfg)
+	clientConfig := config.EmberConfig{EntryPath: "1.2.3", MetricsPrefix: "ember_", GPIOs: []string{"1"}}
 
-	svc.pollEmberProvider("first", first)
-	svc.pollEmberProvider("second", second)
+	svc.applyElements("host", clientConfig, ember.ElementCollection{
+		{Path: "1"}: {Path: "1", Description: "on_air", HasValue: true, Value: false},
+	})
+	svc.applyElements("host", clientConfig, ember.ElementCollection{
+		{Path: "1.2.3.1"}: {Path: "1.2.3.1", HasValue: true, Value: true},
+	})
 
-	metrics := make(chan prometheus.Metric, 3)
-	cfg.Metrics.GpioStateGauge.Collect(metrics)
-	close(metrics)
-	var names []string
-	for metric := range metrics {
-		var pb dto.Metric
-		assert.NoError(t, metric.Write(&pb))
-		for _, label := range pb.Label {
-			if label.GetName() == "gpioName" {
-				names = append(names, label.GetValue())
-			}
-		}
-	}
-
-	assert.ElementsMatch(t, []string{"first_state", "second_other"}, names)
+	assert.EqualValues(t, 1, gaugeValue(cfg.Metrics.GpioStateGauge.WithLabelValues("ember_on_air")))
 }
 
-func TestPollRunReconnectsOnReadError(t *testing.T) {
-	cfg := config.AppConfig{}
-	cfg.RunTime.EmberGpios = make(map[string]config.EmberConfig)
-	fakeConn := &fakeEmberConn{getErr: errors.New("read failed")}
-	healthyConn := &fakeEmberConn{data: []byte(`{}`)}
-	cfg.RunTime.EmberGpios["host"] = config.EmberConfig{Conn: fakeConn}
-	cfg.RunTime.EmberGpios["healthy"] = config.EmberConfig{Conn: healthyConn}
-	svc := NewEmberPollService(&cfg)
+func TestUnconfiguredAndNonBooleanElementsAreIgnored(t *testing.T) {
+	cfg := newEmberTestConfig()
+	svc := NewEmberPollService(cfg)
+	clientConfig := config.EmberConfig{MetricsPrefix: "ember_", GPIOs: []string{"1"}}
 
-	svc.PollRun()
+	svc.applyElements("host", clientConfig, ember.ElementCollection{
+		{Path: "1"}: {Path: "1", Description: "invalid", HasValue: true, Value: int64(1)},
+		{Path: "2"}: {Path: "2", Description: "ignored", HasValue: true, Value: true},
+	})
 
-	assert.EqualValues(t, 1, fakeConn.disconnectCount)
-	assert.EqualValues(t, 1, fakeConn.connectCount)
-	assert.EqualValues(t, 0, healthyConn.disconnectCount)
-	assert.EqualValues(t, 0, healthyConn.connectCount)
+	metrics := make(chan prometheus.Metric, 1)
+	cfg.Metrics.GpioStateGauge.Collect(metrics)
+	close(metrics)
+	assert.Empty(t, metrics)
 }
 
 func gaugeValue(metric prometheus.Metric) float64 {
 	var pb dto.Metric
-	metric.Write(&pb)
+	_ = metric.Write(&pb)
 	return pb.GetGauge().GetValue()
 }

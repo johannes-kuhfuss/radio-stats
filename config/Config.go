@@ -2,6 +2,7 @@
 package config
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -69,7 +70,8 @@ type EmberConfig struct {
 type EmberConnection interface {
 	Connect() error
 	Disconnect() error
-	GetByType(ember.ElementType, string) ([]byte, error)
+	GetElementCollectionGlow250(ember.ElementType, string) (ember.ElementCollection, error)
+	Serve(context.Context, func(ember.RootMessage) error) error
 }
 
 type EmberConfigDecoder map[string]EmberConfig

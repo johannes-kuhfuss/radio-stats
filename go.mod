@@ -5,7 +5,7 @@ go 1.27
 require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/goccy/go-json v0.10.6
-	github.com/johannes-kuhfuss/emberplus v1.1.2
+	github.com/johannes-kuhfuss/emberplus v1.2.0
 	github.com/johannes-kuhfuss/services_utils v1.1.2
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
